@@ -11,7 +11,6 @@
 
     <header class="topbar">
       <img src="hiveway-_1_.gif" alt="Hiveway logo" class="logo" />
-
       <div>
         <h1>Asset Manager</h1>
         <p>Track company devices, Stripe terminals, test cards, and equipment assignments.</p>
@@ -19,115 +18,164 @@
     </header>
 
     <section class="stats">
-      <div class="stat">
-        <span id="totalAssets">0</span>
-        <p>Total Assets</p>
-      </div>
-
-      <div class="stat">
-        <span id="assignedAssets">0</span>
-        <p>Assigned</p>
-      </div>
-
-      <div class="stat">
-        <span id="availableAssets">0</span>
-        <p>Available</p>
-      </div>
-
-      <div class="stat">
-        <span id="issueAssets">0</span>
-        <p>Repair / Lost</p>
-      </div>
+      <div class="stat"><span id="totalAssets">0</span><p>Total Assets</p></div>
+      <div class="stat"><span id="assignedAssets">0</span><p>Assigned</p></div>
+      <div class="stat"><span id="availableAssets">0</span><p>Available</p></div>
+      <div class="stat"><span id="issueAssets">0</span><p>Repair / Lost</p></div>
     </section>
 
-    <section class="layout">
+    <nav class="tabs">
+      <button class="tab active" data-tab="inventoryView">Inventory</button>
+      <button class="tab" data-tab="reportsView">Reports</button>
+    </nav>
 
+    <section id="inventoryView" class="tab-view active-view">
+      <section class="layout">
+
+        <section class="card">
+          <h2 id="formTitle">Add Asset</h2>
+
+          <form id="assetForm">
+            <input type="hidden" id="editingId" />
+
+            <label>Asset Type</label>
+            <select id="assetType" required>
+              <option value="">Select asset type</option>
+              <option>MacBook</option>
+              <option>iPad</option>
+              <option>iPhone</option>
+              <option>Android Phone</option>
+              <option>BBPOS WisePad 3</option>
+              <option>BBPOS WisePOS E</option>
+              <option>BBPOS WisePOS E Dock</option>
+              <option>Stripe Reader M2</option>
+              <option>Stripe Reader S700</option>
+              <option>Stripe Terminal Test Card</option>
+              <option>Interac Test Card</option>
+              <option>Other</option>
+            </select>
+
+            <label>Model / Description</label>
+            <input id="model" placeholder="Example: 14-inch MacBook Pro" />
+
+            <label>Serial Number / Unique ID</label>
+            <input id="serialNumber" placeholder="Serial number or unique identifier" required />
+
+            <label>Assigned To</label>
+            <input id="assignedTo" placeholder="Employee name" />
+
+            <label>Employee Email</label>
+            <input id="employeeEmail" placeholder="employee@company.com" />
+
+            <label>Status</label>
+            <select id="status">
+              <option>Available</option>
+              <option>Assigned</option>
+              <option>Repair</option>
+              <option>Retired</option>
+              <option>Lost</option>
+            </select>
+
+            <label>Location</label>
+            <input id="location" placeholder="Office, city, or team" />
+
+            <label>Notes</label>
+            <textarea id="notes" placeholder="Notes, kit contents, condition, etc."></textarea>
+
+            <button type="submit" id="submitBtn">Add Asset</button>
+            <button type="button" id="cancelEdit" class="secondary hidden">Cancel Edit</button>
+          </form>
+        </section>
+
+        <section class="card inventory">
+          <div class="section-head">
+            <div>
+              <h2>Inventory</h2>
+              <p>Search, export, import, and manage tracked assets.</p>
+            </div>
+
+            <div class="actions">
+              <button id="exportJson">Export JSON</button>
+              <button id="exportCsv">Export CSV</button>
+              <label class="import-btn">
+                Import JSON
+                <input type="file" id="importJson" accept=".json" hidden />
+              </label>
+            </div>
+          </div>
+
+          <input id="search" class="search" placeholder="Search by asset, serial, employee, status..." />
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Asset ID</th>
+                  <th>Type</th>
+                  <th>Serial / ID</th>
+                  <th>Assigned To</th>
+                  <th>Status</th>
+                  <th>Location</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="assetTable"></tbody>
+            </table>
+          </div>
+
+          <p id="emptyState" class="empty">No assets yet. Add your first asset on the left.</p>
+        </section>
+
+      </section>
+    </section>
+
+    <section id="reportsView" class="tab-view">
       <section class="card">
-        <h2>Add Asset</h2>
+        <h2>Reports</h2>
+        <p>Asset summaries by employee, status, and asset type.</p>
 
-        <form id="assetForm">
-          <label>Asset Type</label>
-          <select id="assetType" required>
-            <option value="">Select asset type</option>
-            <option>MacBook</option>
-            <option>iPad</option>
-            <option>iPhone</option>
-            <option>Android Phone</option>
-            <option>BBPOS WisePad 3</option>
-            <option>BBPOS WisePOS E</option>
-            <option>BBPOS WisePOS E Dock</option>
-            <option>Stripe Reader M2</option>
-            <option>Stripe Reader S700</option>
-            <option>Stripe Terminal Test Card</option>
-            <option>Interac Test Card</option>
-            <option>Other</option>
-          </select>
-
-          <label>Model / Description</label>
-          <input id="model" placeholder="Example: 14-inch MacBook Pro" />
-
-          <label>Serial Number / Unique ID</label>
-          <input id="serialNumber" placeholder="Serial number or unique identifier" required />
-
-          <label>Assigned To</label>
-          <input id="assignedTo" placeholder="Employee name" />
-
-          <label>Employee Email</label>
-          <input id="employeeEmail" placeholder="employee@company.com" />
-
-          <label>Status</label>
-          <select id="status">
-            <option>Available</option>
-            <option>Assigned</option>
-            <option>Repair</option>
-            <option>Retired</option>
-            <option>Lost</option>
-          </select>
-
-          <label>Location</label>
-          <input id="location" placeholder="Office, city, or team" />
-
-          <label>Notes</label>
-          <textarea id="notes" placeholder="Notes, kit contents, condition, etc."></textarea>
-
-          <button type="submit">Add Asset</button>
-        </form>
-      </section>
-
-      <section class="card inventory">
-        <div class="section-head">
+        <div class="report-grid">
           <div>
-            <h2>Inventory</h2>
-            <p>Search, export, and manage tracked assets.</p>
+            <h3>Assets by Employee</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Email</th>
+                  <th>Total Assets</th>
+                </tr>
+              </thead>
+              <tbody id="employeeReport"></tbody>
+            </table>
           </div>
 
-          <div class="actions">
-            <button id="exportJson">Export JSON</button>
-            <button id="exportCsv">Export CSV</button>
+          <div>
+            <h3>Assets by Status</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="statusReport"></tbody>
+            </table>
           </div>
-        </div>
 
-        <input id="search" class="search" placeholder="Search by asset, serial, employee, status..." />
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Asset ID</th>
-                <th>Type</th>
-                <th>Serial / ID</th>
-                <th>Assigned To</th>
-                <th>Status</th>
-                <th>Location</th>
-                <th></th>
-              </tr>
-            </thead>
-
-            <tbody id="assetTable"></tbody>
-          </table>
+          <div>
+            <h3>Assets by Type</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="typeReport"></tbody>
+            </table>
+          </div>
         </div>
       </section>
-
     </section>
 
   </main>
