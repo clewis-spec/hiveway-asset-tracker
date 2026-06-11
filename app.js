@@ -25,7 +25,10 @@ function assetPrefix(type) {
 
 function generateAssetId(type) {
   const prefix = assetPrefix(type);
-  const count = assets.filter(asset => asset.id && asset.id.startsWith(prefix)).length + 1;
+
+  const count =
+    assets.filter(asset => asset.id && asset.id.startsWith(prefix)).length + 1;
+
   return `${prefix}-${String(count).padStart(3, "0")}`;
 }
 
@@ -35,11 +38,14 @@ function saveAssets() {
 
 function updateStats() {
   document.getElementById("totalAssets").textContent = assets.length;
+
   document.getElementById("assignedAssets").textContent =
     assets.filter(asset => asset.status === "Assigned").length;
+
   document.getElementById("availableAssets").textContent =
     assets.filter(asset => asset.status === "Available").length;
-  document.getElementById("repairAssets").textContent =
+
+  document.getElementById("issueAssets").textContent =
     assets.filter(asset => ["Repair", "Lost"].includes(asset.status)).length;
 }
 
@@ -58,16 +64,29 @@ function renderAssets() {
           <div class="asset-id">${asset.id}</div>
           <div class="small">${asset.createdAt ? new Date(asset.createdAt).toLocaleDateString() : ""}</div>
         </td>
-        <td>${asset.assetType}<div class="small">${asset.model || ""}</div></td>
+
+        <td>
+          ${asset.assetType}
+          <div class="small">${asset.model || ""}</div>
+        </td>
+
         <td>${asset.serialNumber}</td>
+
         <td>
           ${asset.assignedTo || "Unassigned"}
           <div class="small">${asset.employeeEmail || ""}</div>
         </td>
-        <td><span class="badge ${asset.status}">${asset.status}</span></td>
-        <td>${asset.location || ""}</td>
+
         <td>
-          <button class="delete-btn" onclick="deleteAsset('${asset.id}')">Delete</button>
+          <span class="badge ${asset.status}">${asset.status}</span>
+        </td>
+
+        <td>${asset.location || ""}</td>
+
+        <td>
+          <button class="delete-btn" onclick="deleteAsset('${asset.id}')">
+            Delete
+          </button>
         </td>
       `;
 
@@ -133,7 +152,9 @@ document.getElementById("exportCsv").addEventListener("click", () => {
     headers.map(header => `"${asset[header] || ""}"`).join(",")
   );
 
-  downloadFile("hiveway-assets.csv", [headers.join(","), ...rows].join("\n"));
+  const csv = [headers.join(","), ...rows].join("\n");
+
+  downloadFile("hiveway-assets.csv", csv);
 });
 
 function downloadFile(filename, content) {
