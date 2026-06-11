@@ -269,19 +269,19 @@ function renderAssets() {
       <td>${asset.location || ""}</td>
 
       <td>
-        <button onclick="editAsset('${asset.id}')">Edit</button>
-        <button onclick="viewAssetHistory('${asset.id}')">History</button>
+        <button class="action-btn" onclick="editAsset('${asset.id}')">Edit</button>
+        <button class="action-btn" onclick="viewAssetHistory('${asset.id}')">History</button>
         ${
           asset.status === "Assigned"
-            ? `<button onclick="returnAsset('${asset.id}')">Return</button>`
+            ? `<button class="action-btn" onclick="returnAsset('${asset.id}')">Return</button>`
             : ""
         }
         ${
           asset.acquisitionType === "Leased" && asset.leaseStatus !== "Returned After Lease"
-            ? `<button onclick="returnLeaseAsset('${asset.id}')">Lease Return</button>`
+            ? `<button class="action-btn" onclick="returnLeaseAsset('${asset.id}')">Lease Return</button>`
             : ""
         }
-        <button class="delete-btn" onclick="deleteAsset('${asset.id}')">Delete</button>
+        <button class="action-btn delete-btn" onclick="deleteAsset('${asset.id}')">Delete</button>
       </td>
     `;
 
