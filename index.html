@@ -3,104 +3,73 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hiveway Asset Manager</title>
+  <title>Hiveway Asset Tracker</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
   <main class="app">
 
     <header class="topbar">
-      <img src="assets/hiveway-logo.gif" alt="Hiveway logo" class="logo" />
+      <img src="hiveway-_1_.gif" alt="Hiveway logo" class="logo" />
+
       <div>
-        <h1>Asset Manager</h1>
+        <h1>Hiveway Asset Tracker</h1>
         <p>Track company devices, Stripe terminals, test cards, and inventory assignments.</p>
       </div>
     </header>
 
-    <section class="stats">
-      <div class="stat"><span id="totalAssets">0</span><p>Total Assets</p></div>
-      <div class="stat"><span id="assignedAssets">0</span><p>Assigned</p></div>
-      <div class="stat"><span id="availableAssets">0</span><p>Available</p></div>
-      <div class="stat"><span id="repairAssets">0</span><p>Repair / Lost</p></div>
+    <section class="hero">
+      <h2>Add Asset</h2>
+
+      <form id="assetForm">
+        <input id="assetType" placeholder="Asset Type" required />
+        <input id="model" placeholder="Model" />
+        <input id="serialNumber" placeholder="Serial Number / Unique ID" required />
+        <input id="assignedTo" placeholder="Assigned To" />
+
+        <select id="status">
+          <option>Available</option>
+          <option>Assigned</option>
+          <option>Repair</option>
+          <option>Retired</option>
+          <option>Lost</option>
+        </select>
+
+        <input id="location" placeholder="Location" />
+        <textarea id="notes" placeholder="Notes"></textarea>
+
+        <button type="submit">Add Asset</button>
+      </form>
     </section>
 
-    <section class="layout">
-      <section class="card">
-        <h2>Add Asset</h2>
+    <section class="card">
+      <div class="toolbar">
+        <input id="search" placeholder="Search Assets..." />
+        <button id="exportJson">Export JSON</button>
+        <button id="exportCsv">Export CSV</button>
+      </div>
 
-        <form id="assetForm">
-          <label>Asset Category</label>
-          <select id="assetType" required>
-            <option value="">Select asset type</option>
-            <option>MacBook</option>
-            <option>iPad</option>
-            <option>iPhone</option>
-            <option>Android Phone</option>
-            <option>BBPOS WisePad 3</option>
-            <option>BBPOS WisePOS E</option>
-            <option>BBPOS WisePOS E Dock</option>
-            <option>Stripe Reader M2</option>
-            <option>Stripe Reader S700</option>
-            <option>Stripe Terminal Test Card</option>
-            <option>Interac Test Card</option>
-            <option>Other</option>
-          </select>
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Model</th>
+            <th>Serial</th>
+            <th>Assigned To</th>
+            <th>Status</th>
+            <th>Location</th>
+            <th></th>
+          </tr>
+        </thead>
 
-          <input id="model" placeholder="Model / description" />
-          <input id="serialNumber" placeholder="Serial number / unique identifier" required />
-          <input id="assignedTo" placeholder="Assigned to" />
-          <input id="employeeEmail" placeholder="Employee email" />
-
-          <select id="status">
-            <option>Available</option>
-            <option>Assigned</option>
-            <option>Repair</option>
-            <option>Retired</option>
-            <option>Lost</option>
-          </select>
-
-          <input id="location" placeholder="Location" />
-          <textarea id="notes" placeholder="Notes"></textarea>
-
-          <button type="submit">Add Asset</button>
-        </form>
-      </section>
-
-      <section class="card inventory">
-        <div class="section-head">
-          <div>
-            <h2>Inventory</h2>
-            <p>Search, export, and manage tracked assets.</p>
-          </div>
-          <div class="actions">
-            <button id="exportJson">Export JSON</button>
-            <button id="exportCsv">Export CSV</button>
-          </div>
-        </div>
-
-        <input id="search" class="search" placeholder="Search by asset, serial, employee, status..." />
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Asset ID</th>
-                <th>Type</th>
-                <th>Serial / ID</th>
-                <th>Assigned To</th>
-                <th>Status</th>
-                <th>Location</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="assetTable"></tbody>
-          </table>
-        </div>
-      </section>
+        <tbody id="assetTable"></tbody>
+      </table>
     </section>
 
   </main>
 
   <script src="app.js"></script>
+
 </body>
 </html>
