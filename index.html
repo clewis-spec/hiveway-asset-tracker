@@ -19,7 +19,7 @@
         <div class="brand-copy">
           <p class="eyebrow">Hiveway Operations</p>
           <h1>Asset Manager</h1>
-          <p>Track devices, Stripe terminals, test cards, transfers, and equipment assignments.</p>
+          <p>Track devices, Stripe terminals, test cards, transfers, leases, and equipment assignments.</p>
         </div>
       </div>
 
@@ -122,6 +122,37 @@
               <option>Unknown</option>
             </select>
 
+            <label>Acquisition Type</label>
+            <select id="acquisitionType">
+              <option>Owned</option>
+              <option>Leased</option>
+            </select>
+
+            <div id="leaseFieldsWrapper" class="hidden">
+              <label>Lease Status</label>
+              <select id="leaseStatus">
+                <option value="">Select lease status</option>
+                <option>Active Lease</option>
+                <option>Returned After Lease</option>
+                <option>Lease Ended / Buyout</option>
+              </select>
+
+              <label>Leasing Company</label>
+              <input id="leaseProvider" placeholder="Leasing provider or company" />
+
+              <label>Lease Start Date</label>
+              <input id="leaseStartDate" type="date" />
+
+              <label>Lease End Date</label>
+              <input id="leaseEndDate" type="date" />
+
+              <label>Lease Return Date</label>
+              <input id="leaseReturnDate" type="date" />
+
+              <label>Lease Contract / Reference #</label>
+              <input id="leaseReference" placeholder="Contract, PO, or lease reference" />
+            </div>
+
             <label>Location</label>
             <input id="location" placeholder="Office, city, team, or department" />
 
@@ -138,7 +169,7 @@
             <input id="cost" type="number" step="0.01" placeholder="0.00" />
 
             <label>Notes</label>
-            <textarea id="notes" placeholder="Notes, kit contents, condition, etc."></textarea>
+            <textarea id="notes" placeholder="Notes, kit contents, condition, lease notes, etc."></textarea>
 
             <button type="submit" id="submitBtn">Add Asset</button>
             <button type="button" id="cancelEdit" class="secondary hidden">Cancel Edit</button>
@@ -149,7 +180,7 @@
           <div class="section-head">
             <div>
               <h2>Inventory</h2>
-              <p>Search, import, export, edit, return, and manage assets.</p>
+              <p>Search, import, export, edit, return, lease-return, and manage assets.</p>
               <p class="small"><strong>Backup reminder:</strong> This app stores data in your browser. Export JSON regularly.</p>
             </div>
 
@@ -164,7 +195,7 @@
             </div>
           </div>
 
-          <input id="search" class="search" placeholder="Search by asset, serial, employee, model, status, condition, or location..." />
+          <input id="search" class="search" placeholder="Search by asset, serial, employee, model, status, ownership, lease, condition, or location..." />
 
           <div class="table-wrap">
             <table>
@@ -233,6 +264,33 @@
                 </tr>
               </thead>
               <tbody id="typeReport"></tbody>
+            </table>
+          </div>
+
+          <div>
+            <h3>Assets by Acquisition</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Acquisition</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="acquisitionReport"></tbody>
+            </table>
+          </div>
+
+          <div>
+            <h3>Upcoming Lease Returns</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Asset</th>
+                  <th>Lease End</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="leaseReport"></tbody>
             </table>
           </div>
         </div>
