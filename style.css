@@ -241,6 +241,7 @@ button {
   background: var(--dark);
   color: white;
   font-weight: 850;
+  transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
 }
 
 button:hover {
@@ -369,6 +370,30 @@ tr:hover td {
   background: var(--danger);
 }
 
+.action-btn {
+  width: auto;
+  min-width: 72px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.action-btn:last-child {
+  margin-right: 0;
+}
+
+td:last-child {
+  min-width: 280px;
+}
+
 .empty {
   margin-top: 24px;
   padding: 24px;
@@ -486,5 +511,15 @@ tr:hover td {
 
   table {
     min-width: 760px;
+  }
+
+  td:last-child {
+    min-width: 240px;
+  }
+
+  .action-btn {
+    min-width: 66px;
+    padding: 7px 10px;
+    font-size: 12px;
   }
 }
