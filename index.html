@@ -6,27 +6,45 @@
   <title>Hiveway Asset Manager</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <main class="app">
 
     <header class="topbar">
-      <img src="hiveway-_1_.gif" alt="Hiveway logo" class="logo" />
+      <img src="hiveway-_1_.gif" alt="Hiveway Logo" class="logo" />
+
       <div>
         <h1>Asset Manager</h1>
-        <p>Track company devices, Stripe terminals, test cards, and equipment assignments.</p>
+        <p>Track company devices, Stripe terminals, test cards, transfers, and equipment assignments.</p>
       </div>
     </header>
 
     <section class="stats">
-      <div class="stat"><span id="totalAssets">0</span><p>Total Assets</p></div>
-      <div class="stat"><span id="assignedAssets">0</span><p>Assigned</p></div>
-      <div class="stat"><span id="availableAssets">0</span><p>Available</p></div>
-      <div class="stat"><span id="issueAssets">0</span><p>Repair / Lost</p></div>
+      <div class="stat">
+        <span id="totalAssets">0</span>
+        <p>Total Assets</p>
+      </div>
+
+      <div class="stat">
+        <span id="assignedAssets">0</span>
+        <p>Assigned</p>
+      </div>
+
+      <div class="stat">
+        <span id="availableAssets">0</span>
+        <p>Available</p>
+      </div>
+
+      <div class="stat">
+        <span id="issueAssets">0</span>
+        <p>Repair / Lost</p>
+      </div>
     </section>
 
     <nav class="tabs">
       <button class="tab active" data-tab="inventoryView">Inventory</button>
       <button class="tab" data-tab="reportsView">Reports</button>
+      <button class="tab" data-tab="transferView">Transfer</button>
     </nav>
 
     <section id="inventoryView" class="tab-view active-view">
@@ -42,8 +60,8 @@
             <select id="assetType" required>
               <option value="">Select asset type</option>
               <option>MacBook</option>
-              <option>iPad</option>
               <option>iPhone</option>
+              <option>iPad</option>
               <option>Android Phone</option>
               <option>BBPOS WisePad 3</option>
               <option>BBPOS WisePOS E</option>
@@ -55,8 +73,10 @@
               <option>Other</option>
             </select>
 
-            <label>Model / Description</label>
-            <input id="model" placeholder="Example: 14-inch MacBook Pro" />
+            <label>Model</label>
+            <select id="model" required>
+              <option value="">Select asset type first</option>
+            </select>
 
             <label>Serial Number / Unique ID</label>
             <input id="serialNumber" placeholder="Serial number or unique identifier" required />
@@ -77,7 +97,7 @@
             </select>
 
             <label>Location</label>
-            <input id="location" placeholder="Office, city, or team" />
+            <input id="location" placeholder="Office, city, team, or department" />
 
             <label>Notes</label>
             <textarea id="notes" placeholder="Notes, kit contents, condition, etc."></textarea>
@@ -91,12 +111,13 @@
           <div class="section-head">
             <div>
               <h2>Inventory</h2>
-              <p>Search, export, import, and manage tracked assets.</p>
+              <p>Search, import, export, edit, and manage assets.</p>
             </div>
 
             <div class="actions">
               <button id="exportJson">Export JSON</button>
               <button id="exportCsv">Export CSV</button>
+
               <label class="import-btn">
                 Import JSON
                 <input type="file" id="importJson" accept=".json" hidden />
@@ -104,7 +125,7 @@
             </div>
           </div>
 
-          <input id="search" class="search" placeholder="Search by asset, serial, employee, status..." />
+          <input id="search" class="search" placeholder="Search by asset, serial, employee, model, or status..." />
 
           <div class="table-wrap">
             <table>
@@ -112,18 +133,19 @@
                 <tr>
                   <th>Asset ID</th>
                   <th>Type</th>
-                  <th>Serial / ID</th>
+                  <th>Serial</th>
                   <th>Assigned To</th>
                   <th>Status</th>
                   <th>Location</th>
                   <th>Actions</th>
                 </tr>
               </thead>
+
               <tbody id="assetTable"></tbody>
             </table>
           </div>
 
-          <p id="emptyState" class="empty">No assets yet. Add your first asset on the left.</p>
+          <p id="emptyState" class="empty">No assets yet. Add your first asset.</p>
         </section>
 
       </section>
@@ -132,7 +154,7 @@
     <section id="reportsView" class="tab-view">
       <section class="card">
         <h2>Reports</h2>
-        <p>Asset summaries by employee, status, and asset type.</p>
+        <p>Click an employee name to view assigned assets and transfer history.</p>
 
         <div class="report-grid">
           <div>
@@ -175,6 +197,34 @@
             </table>
           </div>
         </div>
+      </section>
+    </section>
+
+    <section id="transferView" class="tab-view">
+      <section class="card transfer-card">
+        <h2>Transfer Asset</h2>
+        <p>Move equipment from one employee to another and keep a transfer record.</p>
+
+        <form id="transferForm">
+          <label>Asset</label>
+          <select id="transferAsset" required>
+            <option value="">Select asset</option>
+          </select>
+
+          <label>New Assigned To</label>
+          <input id="transferTo" placeholder="Employee name" required />
+
+          <label>New Employee Email</label>
+          <input id="transferEmail" placeholder="employee@company.com" />
+
+          <label>New Location</label>
+          <input id="transferLocation" placeholder="Office, city, team, or department" />
+
+          <label>Transfer Notes</label>
+          <textarea id="transferNotes" placeholder="Example: Redeployed from Dev to Sales"></textarea>
+
+          <button type="submit">Transfer Asset</button>
+        </form>
       </section>
     </section>
 
