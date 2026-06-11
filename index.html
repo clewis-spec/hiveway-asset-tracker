@@ -70,13 +70,23 @@
               <option>Stripe Reader S700</option>
               <option>Stripe Terminal Test Card</option>
               <option>Interac Test Card</option>
-              <option>Other</option>
+              <option value="Other / Custom">Other / Custom</option>
             </select>
+
+            <div id="customAssetTypeWrapper" class="hidden">
+              <label>Custom Asset Type</label>
+              <input id="customAssetType" placeholder="Example: Monitor, Dock, Keyboard, Router" />
+            </div>
 
             <label>Model</label>
             <select id="model" required>
               <option value="">Select asset type first</option>
             </select>
+
+            <div id="customModelWrapper" class="hidden">
+              <label>Custom Model</label>
+              <input id="customModel" placeholder="Example: Dell UltraSharp U2723QE" />
+            </div>
 
             <label>Serial Number / Unique ID</label>
             <input id="serialNumber" placeholder="Serial number or unique identifier" required />
@@ -96,8 +106,29 @@
               <option>Lost</option>
             </select>
 
+            <label>Condition</label>
+            <select id="condition">
+              <option>New</option>
+              <option>Good</option>
+              <option>Damaged</option>
+              <option>Missing Accessories</option>
+              <option>Unknown</option>
+            </select>
+
             <label>Location</label>
             <input id="location" placeholder="Office, city, team, or department" />
+
+            <label>Purchase Date</label>
+            <input id="purchaseDate" type="date" />
+
+            <label>Warranty Expiry</label>
+            <input id="warrantyExpiry" type="date" />
+
+            <label>Vendor</label>
+            <input id="vendor" placeholder="Apple, Stripe, Best Buy, etc." />
+
+            <label>Cost</label>
+            <input id="cost" type="number" step="0.01" placeholder="0.00" />
 
             <label>Notes</label>
             <textarea id="notes" placeholder="Notes, kit contents, condition, etc."></textarea>
@@ -111,7 +142,8 @@
           <div class="section-head">
             <div>
               <h2>Inventory</h2>
-              <p>Search, import, export, edit, and manage assets.</p>
+              <p>Search, import, export, edit, return, and manage assets.</p>
+              <p class="small"><strong>Backup reminder:</strong> This app stores data in your browser. Export JSON regularly.</p>
             </div>
 
             <div class="actions">
@@ -125,7 +157,7 @@
             </div>
           </div>
 
-          <input id="search" class="search" placeholder="Search by asset, serial, employee, model, or status..." />
+          <input id="search" class="search" placeholder="Search by asset, serial, employee, model, status, condition, or location..." />
 
           <div class="table-wrap">
             <table>
