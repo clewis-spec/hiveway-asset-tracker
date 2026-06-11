@@ -3,6 +3,8 @@ const table = document.getElementById("assetTable");
 const search = document.getElementById("search");
 const assetTypeSelect = document.getElementById("assetType");
 const modelSelect = document.getElementById("model");
+const customAssetTypeWrapper = document.getElementById("customAssetTypeWrapper");
+const customAssetTypeInput = document.getElementById("customAssetType");
 
 let assets = JSON.parse(localStorage.getItem("hivewayAssets")) || [];
 
@@ -106,8 +108,19 @@ const assetCatalog = {
   "Stripe Reader S700": ["Stripe Reader S700"],
   "Stripe Terminal Test Card": ["Stripe Terminal Test Card"],
   "Interac Test Card": ["Interac Test Card"],
-  "Other": ["Other"]
+  "Other / Custom": ["Custom Asset"]
 };
+
+function updateCustomAssetTypeField() {
+  if (assetTypeSelect.value === "Other / Custom") {
+    customAssetTypeWrapper.classList.remove("hidden");
+    customAssetTypeInput.required = true;
+  } else {
+    customAssetTypeWrapper.classList.add("hidden");
+    customAssetTypeInput.required = false;
+    customAssetTypeInput.value = "";
+  }
+}
 
 function updateModelOptions(selectedModel = "") {
   const type = assetTypeSelect.value;
@@ -134,7 +147,10 @@ function updateModelOptions(selectedModel = "") {
   }
 }
 
-assetTypeSelect.addEventListener("change", () => updateModelOptions());
+assetTypeSelect.addEventListener("change", () => {
+  updateModelOptions();
+  updateCustomAssetTypeField();
+});
 
 function assetPrefix(type) {
   const map = {
@@ -149,10 +165,10 @@ function assetPrefix(type) {
     "Stripe Reader S700": "HW-S700",
     "Stripe Terminal Test Card": "HW-STC",
     "Interac Test Card": "HW-ITC",
-    "Other": "HW-OTH"
+    "Other / Custom": "HW-CUS"
   };
 
-  return map[type] || "HW-AST";
+  return map[type] || "HW-CUS";
 }
 
 function generateAssetId(type) {
@@ -248,7 +264,17 @@ form.addEventListener("submit", event => {
     return;
   }
 
-  const type = assetTypeSelect.value;
+  const selectedType = assetTypeSelect.value;
+
+  const type =
+    selectedType === "Other / Custom"
+      ? customAssetTypeInput.value.trim()
+      : selectedType;
+
+  if (selectedType === "Other / Custom" && !customAssetTypeInput.value.trim()) {
+    alert("Please enter a custom asset type.");
+    return;
+  }
 
   const assetData = {
     assetType: type,
@@ -268,7 +294,7 @@ form.addEventListener("submit", event => {
     );
   } else {
     assets.push({
-      id: generateAssetId(type),
+      id: generateAssetId(selectedType),
       ...assetData,
       createdAt: new Date().toISOString(),
       history: []
@@ -285,7 +311,19 @@ function editAsset(id) {
   if (!asset) return;
 
   document.getElementById("editingId").value = asset.id;
-  assetTypeSelect.value = asset.assetType;
+
+  if (assetCatalog[asset.assetType]) {
+    assetTypeSelect.value = asset.assetType;
+    customAssetTypeWrapper.classList.add("hidden");
+    customAssetTypeInput.required = false;
+    customAssetTypeInput.value = "";
+  } else {
+    assetTypeSelect.value = "Other / Custom";
+    customAssetTypeWrapper.classList.remove("hidden");
+    customAssetTypeInput.required = true;
+    customAssetTypeInput.value = asset.assetType;
+  }
+
   updateModelOptions(asset.model);
 
   document.getElementById("serialNumber").value = asset.serialNumber;
@@ -309,6 +347,7 @@ function resetForm() {
   document.getElementById("submitBtn").textContent = "Add Asset";
   document.getElementById("cancelEdit").classList.add("hidden");
   updateModelOptions();
+  updateCustomAssetTypeField();
 }
 
 document.getElementById("cancelEdit").addEventListener("click", resetForm);
@@ -627,5 +666,6 @@ function downloadFile(filename, content) {
 }
 
 updateModelOptions();
+updateCustomAssetTypeField();
 renderAssets();
 updateTransferOptions();
