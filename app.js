@@ -5,6 +5,8 @@ const assetTypeSelect = document.getElementById("assetType");
 const modelSelect = document.getElementById("model");
 const customAssetTypeWrapper = document.getElementById("customAssetTypeWrapper");
 const customAssetTypeInput = document.getElementById("customAssetType");
+const customModelWrapper = document.getElementById("customModelWrapper");
+const customModelInput = document.getElementById("customModel");
 
 let assets = JSON.parse(localStorage.getItem("hivewayAssets")) || [];
 
@@ -108,17 +110,26 @@ const assetCatalog = {
   "Stripe Reader S700": ["Stripe Reader S700"],
   "Stripe Terminal Test Card": ["Stripe Terminal Test Card"],
   "Interac Test Card": ["Interac Test Card"],
-  "Other / Custom": ["Custom Asset"]
+  "Other / Custom": ["Custom Model"]
 };
 
-function updateCustomAssetTypeField() {
-  if (assetTypeSelect.value === "Other / Custom") {
+function updateCustomFields() {
+  const isCustomType = assetTypeSelect.value === "Other / Custom";
+
+  if (isCustomType) {
     customAssetTypeWrapper.classList.remove("hidden");
     customAssetTypeInput.required = true;
+    customModelWrapper.classList.remove("hidden");
+    customModelInput.required = true;
+    modelSelect.required = false;
   } else {
     customAssetTypeWrapper.classList.add("hidden");
     customAssetTypeInput.required = false;
     customAssetTypeInput.value = "";
+    customModelWrapper.classList.add("hidden");
+    customModelInput.required = false;
+    customModelInput.value = "";
+    modelSelect.required = true;
   }
 }
 
@@ -149,7 +160,7 @@ function updateModelOptions(selectedModel = "") {
 
 assetTypeSelect.addEventListener("change", () => {
   updateModelOptions();
-  updateCustomAssetTypeField();
+  updateCustomFields();
 });
 
 function assetPrefix(type) {
@@ -216,6 +227,7 @@ function renderAssets() {
       <td>
         ${asset.assetType}
         <div class="small">${asset.model || ""}</div>
+        <div class="small">Condition: ${asset.condition || "Unknown"}</div>
       </td>
 
       <td>${asset.serialNumber}</td>
@@ -233,6 +245,12 @@ function renderAssets() {
 
       <td>
         <button onclick="editAsset('${asset.id}')">Edit</button>
+        <button onclick="viewAssetHistory('${asset.id}')">History</button>
+        ${
+          asset.status === "Assigned"
+            ? `<button onclick="returnAsset('${asset.id}')">Return</button>`
+            : ""
+        }
         <button class="delete-btn" onclick="deleteAsset('${asset.id}')">Delete</button>
       </td>
     `;
@@ -253,6 +271,10 @@ form.addEventListener("submit", event => {
 
   const editingId = document.getElementById("editingId").value;
   const serialNumber = document.getElementById("serialNumber").value.trim();
+  const selectedType = assetTypeSelect.value;
+  const status = document.getElementById("status").value;
+  const assignedTo = document.getElementById("assignedTo").value.trim();
+  const employeeEmail = document.getElementById("employeeEmail").value.trim();
 
   const duplicate = assets.find(asset =>
     asset.serialNumber.toLowerCase() === serialNumber.toLowerCase() &&
@@ -264,40 +286,70 @@ form.addEventListener("submit", event => {
     return;
   }
 
-  const selectedType = assetTypeSelect.value;
+  if (selectedType === "Other / Custom" && !customAssetTypeInput.value.trim()) {
+    alert("Please enter a custom asset type.");
+    return;
+  }
+
+  if (selectedType === "Other / Custom" && !customModelInput.value.trim()) {
+    alert("Please enter a custom model.");
+    return;
+  }
+
+  if (status === "Assigned" && (!assignedTo || !employeeEmail)) {
+    alert("Assigned assets require both Assigned To and Employee Email.");
+    return;
+  }
 
   const type =
     selectedType === "Other / Custom"
       ? customAssetTypeInput.value.trim()
       : selectedType;
 
-  if (selectedType === "Other / Custom" && !customAssetTypeInput.value.trim()) {
-    alert("Please enter a custom asset type.");
-    return;
-  }
+  const model =
+    selectedType === "Other / Custom"
+      ? customModelInput.value.trim()
+      : modelSelect.value;
 
   const assetData = {
     assetType: type,
-    model: modelSelect.value,
+    model,
     serialNumber,
-    assignedTo: document.getElementById("assignedTo").value,
-    employeeEmail: document.getElementById("employeeEmail").value,
-    status: document.getElementById("status").value,
+    assignedTo,
+    employeeEmail,
+    status,
+    condition: document.getElementById("condition").value,
     location: document.getElementById("location").value,
+    purchaseDate: document.getElementById("purchaseDate").value,
+    warrantyExpiry: document.getElementById("warrantyExpiry").value,
+    vendor: document.getElementById("vendor").value,
+    cost: document.getElementById("cost").value,
     notes: document.getElementById("notes").value,
     updatedAt: new Date().toISOString()
   };
 
   if (editingId) {
-    assets = assets.map(asset =>
-      asset.id === editingId ? { ...asset, ...assetData } : asset
-    );
+    assets = assets.map(asset => {
+      if (asset.id !== editingId) return asset;
+
+      return {
+        ...asset,
+        ...assetData,
+        history: asset.history || []
+      };
+    });
   } else {
     assets.push({
       id: generateAssetId(selectedType),
       ...assetData,
       createdAt: new Date().toISOString(),
-      history: []
+      history: [
+        {
+          type: "Created",
+          date: new Date().toISOString(),
+          note: "Asset created."
+        }
+      ]
     });
   }
 
@@ -314,23 +366,36 @@ function editAsset(id) {
 
   if (assetCatalog[asset.assetType]) {
     assetTypeSelect.value = asset.assetType;
+    updateModelOptions(asset.model);
     customAssetTypeWrapper.classList.add("hidden");
     customAssetTypeInput.required = false;
     customAssetTypeInput.value = "";
+    customModelWrapper.classList.add("hidden");
+    customModelInput.required = false;
+    customModelInput.value = "";
+    modelSelect.required = true;
   } else {
     assetTypeSelect.value = "Other / Custom";
+    updateModelOptions();
     customAssetTypeWrapper.classList.remove("hidden");
     customAssetTypeInput.required = true;
     customAssetTypeInput.value = asset.assetType;
+    customModelWrapper.classList.remove("hidden");
+    customModelInput.required = true;
+    customModelInput.value = asset.model || "";
+    modelSelect.required = false;
   }
-
-  updateModelOptions(asset.model);
 
   document.getElementById("serialNumber").value = asset.serialNumber;
   document.getElementById("assignedTo").value = asset.assignedTo || "";
   document.getElementById("employeeEmail").value = asset.employeeEmail || "";
   document.getElementById("status").value = asset.status;
+  document.getElementById("condition").value = asset.condition || "Unknown";
   document.getElementById("location").value = asset.location || "";
+  document.getElementById("purchaseDate").value = asset.purchaseDate || "";
+  document.getElementById("warrantyExpiry").value = asset.warrantyExpiry || "";
+  document.getElementById("vendor").value = asset.vendor || "";
+  document.getElementById("cost").value = asset.cost || "";
   document.getElementById("notes").value = asset.notes || "";
 
   document.getElementById("formTitle").textContent = "Edit Asset";
@@ -347,7 +412,7 @@ function resetForm() {
   document.getElementById("submitBtn").textContent = "Add Asset";
   document.getElementById("cancelEdit").classList.add("hidden");
   updateModelOptions();
-  updateCustomAssetTypeField();
+  updateCustomFields();
 }
 
 document.getElementById("cancelEdit").addEventListener("click", resetForm);
@@ -358,6 +423,118 @@ function deleteAsset(id) {
   assets = assets.filter(asset => asset.id !== id);
   saveAssets();
   renderAssets();
+}
+
+function returnAsset(id) {
+  const asset = assets.find(item => item.id === id);
+  if (!asset) return;
+
+  const note = prompt("Return notes:", "Returned to inventory.");
+
+  assets = assets.map(item => {
+    if (item.id !== id) return item;
+
+    const historyItem = {
+      type: "Returned",
+      date: new Date().toISOString(),
+      fromName: item.assignedTo || "Unassigned",
+      fromEmail: item.employeeEmail || "",
+      toName: "Inventory",
+      toEmail: "",
+      note: note || "Returned to inventory."
+    };
+
+    return {
+      ...item,
+      assignedTo: "",
+      employeeEmail: "",
+      status: "Available",
+      updatedAt: new Date().toISOString(),
+      history: [...(item.history || []), historyItem]
+    };
+  });
+
+  saveAssets();
+  renderAssets();
+  alert("Asset returned successfully.");
+}
+
+function viewAssetHistory(id) {
+  const asset = assets.find(item => item.id === id);
+  if (!asset) return;
+
+  const history = asset.history || [];
+
+  const historyHtml = history.length
+    ? history.map(item => `
+        <div class="transfer-history">
+          <strong>${item.type || "Transfer"}</strong><br>
+          Date: ${item.date ? new Date(item.date).toLocaleString() : ""}<br>
+          ${item.fromName ? `From: ${item.fromName} ${item.fromEmail ? `(${item.fromEmail})` : ""}<br>` : ""}
+          ${item.toName ? `To: ${item.toName} ${item.toEmail ? `(${item.toEmail})` : ""}<br>` : ""}
+          ${item.note ? `Note: ${item.note}` : ""}
+        </div>
+      `).join("")
+    : "<p>No history yet.</p>";
+
+  const popup = window.open("", "_blank", "width=760,height=850");
+
+  popup.document.write(`
+    <html>
+      <head>
+        <title>${asset.id} History</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            padding: 24px;
+            color: #111827;
+            background: #f8fafc;
+          }
+
+          h1, h2, h3 {
+            color: #4b4f5c;
+          }
+
+          section {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 18px;
+          }
+
+          .transfer-history {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+          }
+        </style>
+      </head>
+
+      <body>
+        <h1>${asset.id}</h1>
+        <section>
+          <h2>${asset.assetType}</h2>
+          <p>
+            <strong>Model:</strong> ${asset.model || ""}<br>
+            <strong>Serial:</strong> ${asset.serialNumber}<br>
+            <strong>Status:</strong> ${asset.status}<br>
+            <strong>Condition:</strong> ${asset.condition || "Unknown"}<br>
+            <strong>Assigned To:</strong> ${asset.assignedTo || "Unassigned"}<br>
+            <strong>Location:</strong> ${asset.location || ""}<br>
+            <strong>Vendor:</strong> ${asset.vendor || ""}<br>
+            <strong>Cost:</strong> ${asset.cost || ""}<br>
+            <strong>Warranty Expiry:</strong> ${asset.warrantyExpiry || ""}
+          </p>
+        </section>
+
+        <h2>History</h2>
+        ${historyHtml}
+      </body>
+    </html>
+  `);
 }
 
 search.addEventListener("input", renderAssets);
@@ -385,14 +562,27 @@ document.getElementById("exportCsv").addEventListener("click", () => {
     "assignedTo",
     "employeeEmail",
     "status",
+    "condition",
     "location",
+    "purchaseDate",
+    "warrantyExpiry",
+    "vendor",
+    "cost",
     "notes",
     "createdAt",
-    "updatedAt"
+    "updatedAt",
+    "history"
   ];
 
   const rows = assets.map(asset =>
-    headers.map(header => `"${String(asset[header] || "").replaceAll('"', '""')}"`).join(",")
+    headers.map(header => {
+      const value =
+        header === "history"
+          ? JSON.stringify(asset.history || [])
+          : asset[header] || "";
+
+      return `"${String(value).replaceAll('"', '""')}"`;
+    }).join(",")
   );
 
   downloadFile("hiveway-assets.csv", [headers.join(","), ...rows].join("\n"));
@@ -415,7 +605,8 @@ document.getElementById("importJson").addEventListener("change", event => {
 
       assets = imported.map(asset => ({
         ...asset,
-        history: asset.history || []
+        history: asset.history || [],
+        condition: asset.condition || "Unknown"
       }));
 
       saveAssets();
@@ -517,7 +708,8 @@ function showEmployeeAssets(name, email) {
       const historyHtml = history.length
         ? history.map(item => `
             <div class="transfer-history">
-              <strong>${new Date(item.date).toLocaleDateString()}</strong><br>
+              <strong>${item.type || "Transfer"}</strong><br>
+              ${item.date ? new Date(item.date).toLocaleDateString() : ""}<br>
               From: ${item.fromName || "Unassigned"} ${item.fromEmail ? `(${item.fromEmail})` : ""}<br>
               To: ${item.toName || "Unassigned"} ${item.toEmail ? `(${item.toEmail})` : ""}<br>
               ${item.note ? `Note: ${item.note}` : ""}
@@ -533,9 +725,10 @@ function showEmployeeAssets(name, email) {
             ${asset.model || ""}<br>
             Serial: ${asset.serialNumber}<br>
             Status: ${asset.status}<br>
+            Condition: ${asset.condition || "Unknown"}<br>
             Location: ${asset.location || ""}
           </p>
-          <h4>Transfer History</h4>
+          <h4>History</h4>
           ${historyHtml}
         </section>
         <hr>
@@ -622,6 +815,7 @@ document.getElementById("transferForm").addEventListener("submit", event => {
     if (asset.id !== assetId) return asset;
 
     const historyItem = {
+      type: "Transfer",
       date: new Date().toISOString(),
       fromName: asset.assignedTo || "Unassigned",
       fromEmail: asset.employeeEmail || "",
@@ -666,6 +860,6 @@ function downloadFile(filename, content) {
 }
 
 updateModelOptions();
-updateCustomAssetTypeField();
+updateCustomFields();
 renderAssets();
 updateTransferOptions();
