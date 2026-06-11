@@ -1,8 +1,140 @@
 const form = document.getElementById("assetForm");
 const table = document.getElementById("assetTable");
 const search = document.getElementById("search");
+const assetTypeSelect = document.getElementById("assetType");
+const modelSelect = document.getElementById("model");
 
 let assets = JSON.parse(localStorage.getItem("hivewayAssets")) || [];
+
+const assetCatalog = {
+  "MacBook": [
+    "MacBook Air 13-inch, M1 (2020)",
+    "MacBook Pro 13-inch, M1 (2020)",
+    "MacBook Pro 14-inch, M1 Pro (2021)",
+    "MacBook Pro 16-inch, M1 Pro (2021)",
+    "MacBook Pro 16-inch, M1 Max (2021)",
+    "MacBook Air 13-inch, M2 (2022)",
+    "MacBook Pro 13-inch, M2 (2022)",
+    "MacBook Air 15-inch, M2 (2023)",
+    "MacBook Pro 14-inch, M3 (2023)",
+    "MacBook Pro 14-inch, M3 Pro (2023)",
+    "MacBook Pro 16-inch, M3 Max (2023)",
+    "MacBook Air 13-inch, M3 (2024)",
+    "MacBook Air 15-inch, M3 (2024)",
+    "MacBook Pro 14-inch, M4 (2024)",
+    "MacBook Pro 14-inch, M4 Pro (2024)",
+    "MacBook Pro 16-inch, M4 Max (2024)",
+    "Other MacBook"
+  ],
+
+  "iPhone": [
+    "iPhone 12",
+    "iPhone 12 mini",
+    "iPhone 12 Pro",
+    "iPhone 12 Pro Max",
+    "iPhone 13",
+    "iPhone 13 mini",
+    "iPhone 13 Pro",
+    "iPhone 13 Pro Max",
+    "iPhone 14",
+    "iPhone 14 Plus",
+    "iPhone 14 Pro",
+    "iPhone 14 Pro Max",
+    "iPhone 15",
+    "iPhone 15 Plus",
+    "iPhone 15 Pro",
+    "iPhone 15 Pro Max",
+    "iPhone 16",
+    "iPhone 16 Plus",
+    "iPhone 16 Pro",
+    "iPhone 16 Pro Max",
+    "iPhone SE 3rd Generation (2022)",
+    "Other iPhone"
+  ],
+
+  "iPad": [
+    "iPad 10th Generation",
+    "iPad 11th Generation",
+    "iPad Air 4th Generation",
+    "iPad Air 5th Generation",
+    "iPad Air 11-inch, M2",
+    "iPad Air 13-inch, M2",
+    "iPad mini 6th Generation",
+    "iPad mini 7th Generation",
+    "iPad Pro 11-inch, M1",
+    "iPad Pro 12.9-inch, M1",
+    "iPad Pro 11-inch, M2",
+    "iPad Pro 12.9-inch, M2",
+    "iPad Pro 11-inch, M4",
+    "iPad Pro 13-inch, M4",
+    "Other iPad"
+  ],
+
+  "Android Phone": [
+    "Google Pixel 6",
+    "Google Pixel 6 Pro",
+    "Google Pixel 6a",
+    "Google Pixel 7",
+    "Google Pixel 7 Pro",
+    "Google Pixel 7a",
+    "Google Pixel 8",
+    "Google Pixel 8 Pro",
+    "Google Pixel 8a",
+    "Google Pixel 9",
+    "Google Pixel 9 Pro",
+    "Google Pixel 9 Pro XL",
+    "Google Pixel 9 Pro Fold",
+    "Samsung Galaxy S22",
+    "Samsung Galaxy S22+",
+    "Samsung Galaxy S22 Ultra",
+    "Samsung Galaxy S23",
+    "Samsung Galaxy S23+",
+    "Samsung Galaxy S23 Ultra",
+    "Samsung Galaxy S24",
+    "Samsung Galaxy S24+",
+    "Samsung Galaxy S24 Ultra",
+    "Samsung Galaxy S25",
+    "Samsung Galaxy S25+",
+    "Samsung Galaxy S25 Ultra",
+    "Other Android"
+  ],
+
+  "BBPOS WisePad 3": ["BBPOS WisePad 3"],
+  "BBPOS WisePOS E": ["BBPOS WisePOS E"],
+  "BBPOS WisePOS E Dock": ["BBPOS WisePOS E Dock"],
+  "Stripe Reader M2": ["Stripe Reader M2"],
+  "Stripe Reader S700": ["Stripe Reader S700"],
+  "Stripe Terminal Test Card": ["Stripe Terminal Test Card"],
+  "Interac Test Card": ["Interac Test Card"],
+  "Other": ["Other"]
+};
+
+function updateModelOptions(selectedModel = "") {
+  const type = assetTypeSelect.value;
+  const models = assetCatalog[type] || [];
+
+  modelSelect.innerHTML = "";
+
+  if (!type) {
+    modelSelect.innerHTML = `<option value="">Select asset type first</option>`;
+    return;
+  }
+
+  modelSelect.innerHTML = `<option value="">Select model</option>`;
+
+  models.forEach(model => {
+    const option = document.createElement("option");
+    option.value = model;
+    option.textContent = model;
+    modelSelect.appendChild(option);
+  });
+
+  if (selectedModel) {
+    modelSelect.value = selectedModel;
+  }
+}
+
+assetTypeSelect.addEventListener("change", () => updateModelOptions());
 
 function assetPrefix(type) {
   const map = {
@@ -103,11 +235,11 @@ form.addEventListener("submit", event => {
     return;
   }
 
-  const type = document.getElementById("assetType").value;
+  const type = assetTypeSelect.value;
 
   const assetData = {
     assetType: type,
-    model: document.getElementById("model").value,
+    model: modelSelect.value,
     serialNumber,
     assignedTo: document.getElementById("assignedTo").value,
     employeeEmail: document.getElementById("employeeEmail").value,
@@ -139,8 +271,9 @@ function editAsset(id) {
   if (!asset) return;
 
   document.getElementById("editingId").value = asset.id;
-  document.getElementById("assetType").value = asset.assetType;
-  document.getElementById("model").value = asset.model || "";
+  assetTypeSelect.value = asset.assetType;
+  updateModelOptions(asset.model);
+
   document.getElementById("serialNumber").value = asset.serialNumber;
   document.getElementById("assignedTo").value = asset.assignedTo || "";
   document.getElementById("employeeEmail").value = asset.employeeEmail || "";
@@ -161,6 +294,7 @@ function resetForm() {
   document.getElementById("formTitle").textContent = "Add Asset";
   document.getElementById("submitBtn").textContent = "Add Asset";
   document.getElementById("cancelEdit").classList.add("hidden");
+  updateModelOptions();
 }
 
 document.getElementById("cancelEdit").addEventListener("click", resetForm);
@@ -240,8 +374,8 @@ document.getElementById("importJson").addEventListener("change", event => {
 
 function renderReports() {
   renderGroupedReport("employeeReport", groupByEmployee());
-  renderGroupedReport("statusReport", groupByField("status"), ["Status", "Total"]);
-  renderGroupedReport("typeReport", groupByField("assetType"), ["Type", "Total"]);
+  renderGroupedReport("statusReport", groupByField("status"));
+  renderGroupedReport("typeReport", groupByField("assetType"));
 }
 
 function groupByEmployee() {
@@ -250,7 +384,6 @@ function groupByEmployee() {
   assets.forEach(asset => {
     const name = asset.assignedTo || "Unassigned";
     const email = asset.employeeEmail || "";
-
     const key = `${name}|${email}`;
 
     if (!groups[key]) {
@@ -319,4 +452,5 @@ function downloadFile(filename, content) {
   link.click();
 }
 
+updateModelOptions();
 renderAssets();
