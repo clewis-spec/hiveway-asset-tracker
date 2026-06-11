@@ -1,374 +1,631 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hiveway Asset Manager</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
+const form = document.getElementById("assetForm");
+const table = document.getElementById("assetTable");
+const search = document.getElementById("search");
+const assetTypeSelect = document.getElementById("assetType");
+const modelSelect = document.getElementById("model");
 
-<body>
+let assets = JSON.parse(localStorage.getItem("hivewayAssets")) || [];
 
-  <main class="app">
+const assetCatalog = {
+  "MacBook": [
+    "MacBook Air 13-inch, M1 (2020)",
+    "MacBook Pro 13-inch, M1 (2020)",
+    "MacBook Pro 14-inch, M1 Pro (2021)",
+    "MacBook Pro 16-inch, M1 Pro (2021)",
+    "MacBook Pro 16-inch, M1 Max (2021)",
+    "MacBook Air 13-inch, M2 (2022)",
+    "MacBook Pro 13-inch, M2 (2022)",
+    "MacBook Air 15-inch, M2 (2023)",
+    "MacBook Pro 14-inch, M3 (2023)",
+    "MacBook Pro 14-inch, M3 Pro (2023)",
+    "MacBook Pro 16-inch, M3 Max (2023)",
+    "MacBook Air 13-inch, M3 (2024)",
+    "MacBook Air 15-inch, M3 (2024)",
+    "MacBook Pro 14-inch, M4 (2024)",
+    "MacBook Pro 14-inch, M4 Pro (2024)",
+    "MacBook Pro 16-inch, M4 Max (2024)",
+    "Other MacBook"
+  ],
 
-    <header class="topbar">
-      <img
-        src="hiveway-_1_.gif"
-        alt="Hiveway Logo"
-        class="logo"
-      />
+  "iPhone": [
+    "iPhone 12",
+    "iPhone 12 mini",
+    "iPhone 12 Pro",
+    "iPhone 12 Pro Max",
+    "iPhone 13",
+    "iPhone 13 mini",
+    "iPhone 13 Pro",
+    "iPhone 13 Pro Max",
+    "iPhone 14",
+    "iPhone 14 Plus",
+    "iPhone 14 Pro",
+    "iPhone 14 Pro Max",
+    "iPhone 15",
+    "iPhone 15 Plus",
+    "iPhone 15 Pro",
+    "iPhone 15 Pro Max",
+    "iPhone 16",
+    "iPhone 16 Plus",
+    "iPhone 16 Pro",
+    "iPhone 16 Pro Max",
+    "iPhone SE 3rd Generation (2022)",
+    "Other iPhone"
+  ],
 
-      <div>
-        <h1>Asset Manager</h1>
-        <p>
-          Track company devices, Stripe terminals,
-          test cards, and equipment assignments.
-        </p>
-      </div>
-    </header>
+  "iPad": [
+    "iPad 10th Generation",
+    "iPad 11th Generation",
+    "iPad Air 4th Generation",
+    "iPad Air 5th Generation",
+    "iPad Air 11-inch, M2",
+    "iPad Air 13-inch, M2",
+    "iPad mini 6th Generation",
+    "iPad mini 7th Generation",
+    "iPad Pro 11-inch, M1",
+    "iPad Pro 12.9-inch, M1",
+    "iPad Pro 11-inch, M2",
+    "iPad Pro 12.9-inch, M2",
+    "iPad Pro 11-inch, M4",
+    "iPad Pro 13-inch, M4",
+    "Other iPad"
+  ],
 
-    <section class="stats">
+  "Android Phone": [
+    "Google Pixel 6",
+    "Google Pixel 6 Pro",
+    "Google Pixel 6a",
+    "Google Pixel 7",
+    "Google Pixel 7 Pro",
+    "Google Pixel 7a",
+    "Google Pixel 8",
+    "Google Pixel 8 Pro",
+    "Google Pixel 8a",
+    "Google Pixel 9",
+    "Google Pixel 9 Pro",
+    "Google Pixel 9 Pro XL",
+    "Google Pixel 9 Pro Fold",
+    "Samsung Galaxy S22",
+    "Samsung Galaxy S22+",
+    "Samsung Galaxy S22 Ultra",
+    "Samsung Galaxy S23",
+    "Samsung Galaxy S23+",
+    "Samsung Galaxy S23 Ultra",
+    "Samsung Galaxy S24",
+    "Samsung Galaxy S24+",
+    "Samsung Galaxy S24 Ultra",
+    "Samsung Galaxy S25",
+    "Samsung Galaxy S25+",
+    "Samsung Galaxy S25 Ultra",
+    "Other Android"
+  ],
 
-      <div class="stat">
-        <span id="totalAssets">0</span>
-        <p>Total Assets</p>
-      </div>
+  "BBPOS WisePad 3": ["BBPOS WisePad 3"],
+  "BBPOS WisePOS E": ["BBPOS WisePOS E"],
+  "BBPOS WisePOS E Dock": ["BBPOS WisePOS E Dock"],
+  "Stripe Reader M2": ["Stripe Reader M2"],
+  "Stripe Reader S700": ["Stripe Reader S700"],
+  "Stripe Terminal Test Card": ["Stripe Terminal Test Card"],
+  "Interac Test Card": ["Interac Test Card"],
+  "Other": ["Other"]
+};
 
-      <div class="stat">
-        <span id="assignedAssets">0</span>
-        <p>Assigned</p>
-      </div>
+function updateModelOptions(selectedModel = "") {
+  const type = assetTypeSelect.value;
+  const models = assetCatalog[type] || [];
 
-      <div class="stat">
-        <span id="availableAssets">0</span>
-        <p>Available</p>
-      </div>
+  modelSelect.innerHTML = "";
 
-      <div class="stat">
-        <span id="issueAssets">0</span>
-        <p>Repair / Lost</p>
-      </div>
+  if (!type) {
+    modelSelect.innerHTML = `<option value="">Select asset type first</option>`;
+    return;
+  }
 
-    </section>
+  modelSelect.innerHTML = `<option value="">Select model</option>`;
 
-    <nav class="tabs">
-      <button
-        class="tab active"
-        data-tab="inventoryView"
-      >
-        Inventory
-      </button>
+  models.forEach(model => {
+    const option = document.createElement("option");
+    option.value = model;
+    option.textContent = model;
+    modelSelect.appendChild(option);
+  });
 
-      <button
-        class="tab"
-        data-tab="reportsView"
-      >
-        Reports
-      </button>
-    </nav>
+  if (selectedModel) {
+    modelSelect.value = selectedModel;
+  }
+}
 
-    <!-- INVENTORY TAB -->
+assetTypeSelect.addEventListener("change", () => updateModelOptions());
 
-    <section
-      id="inventoryView"
-      class="tab-view active-view"
-    >
+function assetPrefix(type) {
+  const map = {
+    "MacBook": "HW-MAC",
+    "iPad": "HW-IPD",
+    "iPhone": "HW-IPH",
+    "Android Phone": "HW-AND",
+    "BBPOS WisePad 3": "HW-WP3",
+    "BBPOS WisePOS E": "HW-WPE",
+    "BBPOS WisePOS E Dock": "HW-DOCK",
+    "Stripe Reader M2": "HW-M2",
+    "Stripe Reader S700": "HW-S700",
+    "Stripe Terminal Test Card": "HW-STC",
+    "Interac Test Card": "HW-ITC",
+    "Other": "HW-OTH"
+  };
 
-      <section class="layout">
+  return map[type] || "HW-AST";
+}
 
-        <section class="card">
+function generateAssetId(type) {
+  const prefix = assetPrefix(type);
+  const count = assets.filter(asset => asset.id && asset.id.startsWith(prefix)).length + 1;
 
-          <h2 id="formTitle">
-            Add Asset
-          </h2>
+  return `${prefix}-${String(count).padStart(3, "0")}`;
+}
 
-          <form id="assetForm">
+function saveAssets() {
+  localStorage.setItem("hivewayAssets", JSON.stringify(assets));
+}
 
-            <input
-              type="hidden"
-              id="editingId"
-            />
+function updateStats() {
+  document.getElementById("totalAssets").textContent = assets.length;
 
-            <label>Asset Type</label>
+  document.getElementById("assignedAssets").textContent =
+    assets.filter(asset => asset.status === "Assigned").length;
 
-            <select
-              id="assetType"
-              required
-            >
-              <option value="">
-                Select asset type
-              </option>
+  document.getElementById("availableAssets").textContent =
+    assets.filter(asset => asset.status === "Available").length;
 
-              <option>MacBook</option>
-              <option>iPhone</option>
-              <option>iPad</option>
-              <option>Android Phone</option>
+  document.getElementById("issueAssets").textContent =
+    assets.filter(asset => ["Repair", "Lost"].includes(asset.status)).length;
+}
 
-              <option>BBPOS WisePad 3</option>
-              <option>BBPOS WisePOS E</option>
-              <option>BBPOS WisePOS E Dock</option>
+function renderAssets() {
+  const query = search.value.toLowerCase();
 
-              <option>Stripe Reader M2</option>
-              <option>Stripe Reader S700</option>
+  const filteredAssets = assets.filter(asset =>
+    JSON.stringify(asset).toLowerCase().includes(query)
+  );
 
-              <option>Stripe Terminal Test Card</option>
-              <option>Interac Test Card</option>
+  table.innerHTML = "";
 
-              <option>Other</option>
-            </select>
+  filteredAssets.forEach(asset => {
+    const row = document.createElement("tr");
 
-            <label>Model</label>
+    row.innerHTML = `
+      <td>
+        <div class="asset-id">${asset.id}</div>
+        <div class="small">${asset.createdAt ? new Date(asset.createdAt).toLocaleDateString() : ""}</div>
+      </td>
 
-            <select
-              id="model"
-              required
-            >
-              <option value="">
-                Select asset type first
-              </option>
-            </select>
+      <td>
+        ${asset.assetType}
+        <div class="small">${asset.model || ""}</div>
+      </td>
 
-            <label>
-              Serial Number / Unique ID
-            </label>
+      <td>${asset.serialNumber}</td>
 
-            <input
-              id="serialNumber"
-              placeholder="Serial number or unique identifier"
-              required
-            />
+      <td>
+        ${asset.assignedTo || "Unassigned"}
+        <div class="small">${asset.employeeEmail || ""}</div>
+      </td>
 
-            <label>
-              Assigned To
-            </label>
+      <td>
+        <span class="badge ${asset.status}">${asset.status}</span>
+      </td>
 
-            <input
-              id="assignedTo"
-              placeholder="Employee name"
-            />
+      <td>${asset.location || ""}</td>
 
-            <label>
-              Employee Email
-            </label>
+      <td>
+        <button onclick="editAsset('${asset.id}')">Edit</button>
+        <button class="delete-btn" onclick="deleteAsset('${asset.id}')">Delete</button>
+      </td>
+    `;
 
-            <input
-              id="employeeEmail"
-              placeholder="employee@company.com"
-            />
+    table.appendChild(row);
+  });
 
-            <label>Status</label>
+  document.getElementById("emptyState").style.display =
+    filteredAssets.length ? "none" : "block";
 
-            <select id="status">
-              <option>Available</option>
-              <option>Assigned</option>
-              <option>Repair</option>
-              <option>Retired</option>
-              <option>Lost</option>
-            </select>
+  updateStats();
+  renderReports();
+  updateTransferOptions();
+}
 
-            <label>Location</label>
+form.addEventListener("submit", event => {
+  event.preventDefault();
 
-            <input
-              id="location"
-              placeholder="Office, city, or team"
-            />
+  const editingId = document.getElementById("editingId").value;
+  const serialNumber = document.getElementById("serialNumber").value.trim();
 
-            <label>Notes</label>
+  const duplicate = assets.find(asset =>
+    asset.serialNumber.toLowerCase() === serialNumber.toLowerCase() &&
+    asset.id !== editingId
+  );
 
-            <textarea
-              id="notes"
-              placeholder="Notes, kit contents, condition, etc."
-            ></textarea>
+  if (duplicate) {
+    alert("This serial number / unique ID already exists.");
+    return;
+  }
 
-            <button
-              type="submit"
-              id="submitBtn"
-            >
-              Add Asset
-            </button>
+  const type = assetTypeSelect.value;
 
-            <button
-              type="button"
-              id="cancelEdit"
-              class="secondary hidden"
-            >
-              Cancel Edit
-            </button>
+  const assetData = {
+    assetType: type,
+    model: modelSelect.value,
+    serialNumber,
+    assignedTo: document.getElementById("assignedTo").value,
+    employeeEmail: document.getElementById("employeeEmail").value,
+    status: document.getElementById("status").value,
+    location: document.getElementById("location").value,
+    notes: document.getElementById("notes").value,
+    updatedAt: new Date().toISOString()
+  };
 
-          </form>
+  if (editingId) {
+    assets = assets.map(asset =>
+      asset.id === editingId ? { ...asset, ...assetData } : asset
+    );
+  } else {
+    assets.push({
+      id: generateAssetId(type),
+      ...assetData,
+      createdAt: new Date().toISOString(),
+      history: []
+    });
+  }
 
-        </section>
+  saveAssets();
+  resetForm();
+  renderAssets();
+});
 
-        <section class="card inventory">
+function editAsset(id) {
+  const asset = assets.find(item => item.id === id);
+  if (!asset) return;
 
-          <div class="section-head">
+  document.getElementById("editingId").value = asset.id;
+  assetTypeSelect.value = asset.assetType;
+  updateModelOptions(asset.model);
 
-            <div>
-              <h2>Inventory</h2>
+  document.getElementById("serialNumber").value = asset.serialNumber;
+  document.getElementById("assignedTo").value = asset.assignedTo || "";
+  document.getElementById("employeeEmail").value = asset.employeeEmail || "";
+  document.getElementById("status").value = asset.status;
+  document.getElementById("location").value = asset.location || "";
+  document.getElementById("notes").value = asset.notes || "";
 
-              <p>
-                Search, import, export, and manage assets.
-              </p>
+  document.getElementById("formTitle").textContent = "Edit Asset";
+  document.getElementById("submitBtn").textContent = "Save Changes";
+  document.getElementById("cancelEdit").classList.remove("hidden");
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function resetForm() {
+  form.reset();
+  document.getElementById("editingId").value = "";
+  document.getElementById("formTitle").textContent = "Add Asset";
+  document.getElementById("submitBtn").textContent = "Add Asset";
+  document.getElementById("cancelEdit").classList.add("hidden");
+  updateModelOptions();
+}
+
+document.getElementById("cancelEdit").addEventListener("click", resetForm);
+
+function deleteAsset(id) {
+  if (!confirm("Delete this asset?")) return;
+
+  assets = assets.filter(asset => asset.id !== id);
+  saveAssets();
+  renderAssets();
+}
+
+search.addEventListener("input", renderAssets);
+
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(item => item.classList.remove("active"));
+    document.querySelectorAll(".tab-view").forEach(view => view.classList.remove("active-view"));
+
+    tab.classList.add("active");
+    document.getElementById(tab.dataset.tab).classList.add("active-view");
+  });
+});
+
+document.getElementById("exportJson").addEventListener("click", () => {
+  downloadFile("hiveway-assets.json", JSON.stringify(assets, null, 2));
+});
+
+document.getElementById("exportCsv").addEventListener("click", () => {
+  const headers = [
+    "id",
+    "assetType",
+    "model",
+    "serialNumber",
+    "assignedTo",
+    "employeeEmail",
+    "status",
+    "location",
+    "notes",
+    "createdAt",
+    "updatedAt"
+  ];
+
+  const rows = assets.map(asset =>
+    headers.map(header => `"${String(asset[header] || "").replaceAll('"', '""')}"`).join(",")
+  );
+
+  downloadFile("hiveway-assets.csv", [headers.join(","), ...rows].join("\n"));
+});
+
+document.getElementById("importJson").addEventListener("change", event => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    try {
+      const imported = JSON.parse(reader.result);
+
+      if (!Array.isArray(imported)) {
+        alert("Invalid JSON file. Expected an array of assets.");
+        return;
+      }
+
+      assets = imported.map(asset => ({
+        ...asset,
+        history: asset.history || []
+      }));
+
+      saveAssets();
+      renderAssets();
+      alert("Assets imported successfully.");
+    } catch {
+      alert("Could not read JSON file.");
+    }
+  };
+
+  reader.readAsText(file);
+});
+
+function renderReports() {
+  renderGroupedReport("employeeReport", groupByEmployee());
+  renderGroupedReport("statusReport", groupByField("status"));
+  renderGroupedReport("typeReport", groupByField("assetType"));
+}
+
+function groupByEmployee() {
+  const groups = {};
+
+  assets.forEach(asset => {
+    const name = asset.assignedTo || "Unassigned";
+    const email = asset.employeeEmail || "";
+    const key = `${name}|${email}`;
+
+    if (!groups[key]) {
+      groups[key] = { label: name, email, count: 0 };
+    }
+
+    groups[key].count += 1;
+  });
+
+  return Object.values(groups);
+}
+
+function groupByField(field) {
+  const groups = {};
+
+  assets.forEach(asset => {
+    const label = asset[field] || "Unknown";
+
+    if (!groups[label]) {
+      groups[label] = { label, count: 0 };
+    }
+
+    groups[label].count += 1;
+  });
+
+  return Object.values(groups);
+}
+
+function renderGroupedReport(elementId, rows) {
+  const body = document.getElementById(elementId);
+  body.innerHTML = "";
+
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="3">No data yet.</td></tr>`;
+    return;
+  }
+
+  rows
+    .sort((a, b) => b.count - a.count)
+    .forEach(row => {
+      const tr = document.createElement("tr");
+
+      if (elementId === "employeeReport") {
+        tr.innerHTML = `
+          <td>
+            <span class="report-link" onclick="showEmployeeAssets('${escapeForAttribute(row.label)}', '${escapeForAttribute(row.email || "")}')">
+              ${row.label}
+            </span>
+          </td>
+          <td>${row.email || ""}</td>
+          <td>${row.count}</td>
+        `;
+      } else {
+        tr.innerHTML = `
+          <td>${row.label}</td>
+          <td>${row.count}</td>
+        `;
+      }
+
+      body.appendChild(tr);
+    });
+}
+
+function showEmployeeAssets(name, email) {
+  const employeeAssets = assets.filter(asset =>
+    (asset.assignedTo || "Unassigned") === name &&
+    (asset.employeeEmail || "") === email
+  );
+
+  const list = employeeAssets
+    .map(asset => {
+      const history = asset.history || [];
+
+      const historyHtml = history.length
+        ? history.map(item => `
+            <div class="transfer-history">
+              <strong>${new Date(item.date).toLocaleDateString()}</strong><br>
+              From: ${item.fromName || "Unassigned"} ${item.fromEmail ? `(${item.fromEmail})` : ""}<br>
+              To: ${item.toName || "Unassigned"} ${item.toEmail ? `(${item.toEmail})` : ""}<br>
+              ${item.note ? `Note: ${item.note}` : ""}
             </div>
+          `).join("")
+        : `<p>No transfer history yet.</p>`;
 
-            <div class="actions">
-
-              <button id="exportJson">
-                Export JSON
-              </button>
-
-              <button id="exportCsv">
-                Export CSV
-              </button>
-
-              <label class="import-btn">
-
-                Import JSON
-
-                <input
-                  type="file"
-                  id="importJson"
-                  accept=".json"
-                  hidden
-                />
-
-              </label>
-
-            </div>
-
-          </div>
-
-          <input
-            id="search"
-            class="search"
-            placeholder="Search by asset, serial, employee, model, or status..."
-          />
-
-          <div class="table-wrap">
-
-            <table>
-
-              <thead>
-                <tr>
-                  <th>Asset ID</th>
-                  <th>Type</th>
-                  <th>Serial</th>
-                  <th>Assigned To</th>
-                  <th>Status</th>
-                  <th>Location</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-
-              <tbody id="assetTable"></tbody>
-
-            </table>
-
-          </div>
-
-          <p
-            id="emptyState"
-            class="empty"
-          >
-            No assets yet. Add your first asset.
+      return `
+        <section>
+          <h3>${asset.id}</h3>
+          <p>
+            <strong>${asset.assetType}</strong><br>
+            ${asset.model || ""}<br>
+            Serial: ${asset.serialNumber}<br>
+            Status: ${asset.status}<br>
+            Location: ${asset.location || ""}
           </p>
-
+          <h4>Transfer History</h4>
+          ${historyHtml}
         </section>
+        <hr>
+      `;
+    })
+    .join("");
 
-      </section>
+  const popup = window.open("", "_blank", "width=760,height=850");
 
-    </section>
+  popup.document.write(`
+    <html>
+      <head>
+        <title>${name} Assets</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            padding: 24px;
+            color: #111827;
+            background: #f8fafc;
+          }
 
-    <!-- REPORTS TAB -->
+          h1, h2, h3 {
+            color: #4b4f5c;
+          }
 
-    <section
-      id="reportsView"
-      class="tab-view"
-    >
+          section {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 18px;
+          }
 
-      <section class="card">
+          hr {
+            border: none;
+            border-top: 1px solid #e5e7eb;
+            margin: 20px 0;
+          }
 
-        <h2>Reports</h2>
+          .transfer-history {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+          }
+        </style>
+      </head>
 
-        <p>
-          Asset summaries by employee, status, and asset type.
-        </p>
+      <body>
+        <h1>${name}</h1>
+        <p>${email || ""}</p>
+        <h2>Assigned Assets</h2>
+        ${list || "<p>No assets assigned.</p>"}
+      </body>
+    </html>
+  `);
+}
 
-        <div class="report-grid">
+function updateTransferOptions() {
+  const transferAsset = document.getElementById("transferAsset");
+  if (!transferAsset) return;
 
-          <div>
+  transferAsset.innerHTML = `<option value="">Select asset</option>`;
 
-            <h3>
-              Assets by Employee
-            </h3>
+  assets.forEach(asset => {
+    const option = document.createElement("option");
+    option.value = asset.id;
+    option.textContent = `${asset.id} — ${asset.assetType} — ${asset.model || ""} — ${asset.assignedTo || "Unassigned"}`;
+    transferAsset.appendChild(option);
+  });
+}
 
-            <table>
+document.getElementById("transferForm").addEventListener("submit", event => {
+  event.preventDefault();
 
-              <thead>
-                <tr>
-                  <th>Employee</th>
-                  <th>Email</th>
-                  <th>Total Assets</th>
-                </tr>
-              </thead>
+  const assetId = document.getElementById("transferAsset").value;
+  const newName = document.getElementById("transferTo").value.trim();
+  const newEmail = document.getElementById("transferEmail").value.trim();
+  const newLocation = document.getElementById("transferLocation").value.trim();
+  const note = document.getElementById("transferNotes").value.trim();
 
-              <tbody id="employeeReport"></tbody>
+  assets = assets.map(asset => {
+    if (asset.id !== assetId) return asset;
 
-            </table>
+    const historyItem = {
+      date: new Date().toISOString(),
+      fromName: asset.assignedTo || "Unassigned",
+      fromEmail: asset.employeeEmail || "",
+      toName: newName,
+      toEmail: newEmail,
+      note
+    };
 
-          </div>
+    return {
+      ...asset,
+      assignedTo: newName,
+      employeeEmail: newEmail,
+      location: newLocation || asset.location,
+      status: "Assigned",
+      updatedAt: new Date().toISOString(),
+      history: [...(asset.history || []), historyItem]
+    };
+  });
 
-          <div>
+  saveAssets();
+  renderAssets();
+  updateTransferOptions();
+  event.target.reset();
 
-            <h3>
-              Assets by Status
-            </h3>
+  alert("Asset transferred successfully.");
+});
 
-            <table>
+function escapeForAttribute(value) {
+  return String(value || "")
+    .replaceAll("\\", "\\\\")
+    .replaceAll("'", "\\'")
+    .replaceAll('"', "&quot;");
+}
 
-              <thead>
-                <tr>
-                  <th>Status</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
+function downloadFile(filename, content) {
+  const blob = new Blob([content], { type: "text/plain" });
+  const link = document.createElement("a");
 
-              <tbody id="statusReport"></tbody>
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+}
 
-            </table>
-
-          </div>
-
-          <div>
-
-            <h3>
-              Assets by Type
-            </h3>
-
-            <table>
-
-              <thead>
-                <tr>
-                  <th>Type</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
-
-              <tbody id="typeReport"></tbody>
-
-            </table>
-
-          </div>
-
-        </div>
-
-      </section>
-
-    </section>
-
-  </main>
-
-  <script src="app.js"></script>
-
-</body>
-</html>
+updateModelOptions();
+renderAssets();
+updateTransferOptions();
