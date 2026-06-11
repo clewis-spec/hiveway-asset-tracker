@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hiveway Asset Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <main class="app">
+
+    <section class="hero">
+      <h1>Hiveway Asset Tracker</h1>
+      <p>Track equipment assignments, serial numbers, and inventory.</p>
+    </section>
+
+    <section class="card">
+      <h2>Add Asset</h2>
+
+      <form id="assetForm">
+
+        <input
+          id="assetType"
+          placeholder="Asset Type"
+          required
+        >
+
+        <input
+          id="model"
+          placeholder="Model"
+        >
+
+        <input
+          id="serialNumber"
+          placeholder="Serial Number / Unique ID"
+          required
+        >
+
+        <input
+          id="assignedTo"
+          placeholder="Assigned To"
+        >
+
+        <select id="status">
+          <option>Available</option>
+          <option>Assigned</option>
+          <option>Repair</option>
+          <option>Retired</option>
+          <option>Lost</option>
+        </select>
+
+        <input
+          id="location"
+          placeholder="Location"
+        >
+
+        <textarea
+          id="notes"
+          placeholder="Notes"
+        ></textarea>
+
+        <button type="submit">
+          Add Asset
+        </button>
+
+      </form>
+    </section>
+
+    <section class="card">
+
+      <div class="toolbar">
+
+        <input
+          id="search"
+          placeholder="Search Assets..."
+        >
+
+        <button id="exportJson">
+          Export JSON
+        </button>
+
+        <button id="exportCsv">
+          Export CSV
+        </button>
+
+      </div>
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Model</th>
+            <th>Serial</th>
+            <th>Assigned To</th>
+            <th>Status</th>
+            <th>Location</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody id="assetTable"></tbody>
+
+      </table>
+
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+
+</body>
+</html>
