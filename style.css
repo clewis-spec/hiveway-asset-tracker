@@ -335,6 +335,31 @@ tr:hover td {
   color: var(--dark);
 }
 
+.report-link {
+  color: var(--dark);
+  font-weight: 900;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--yellow);
+  text-underline-offset: 4px;
+}
+
+.transfer-card {
+  max-width: 720px;
+}
+
+.transfer-history {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+}
+
+.transfer-history strong {
+  color: var(--dark);
+}
+
 @media (max-width: 1000px) {
   .layout {
     grid-template-columns: 1fr;
@@ -379,6 +404,14 @@ tr:hover td {
   .actions {
     width: 100%;
     flex-direction: column;
+  }
+
+  .tabs {
+    flex-direction: column;
+  }
+
+  .tab {
+    width: 100%;
   }
 
   table {
