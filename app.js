@@ -3,12 +3,6 @@ const table = document.getElementById("assetTable");
 const search = document.getElementById("search");
 const assetTypeSelect = document.getElementById("assetType");
 const modelSelect = document.getElementById("model");
-const customAssetTypeWrapper = document.getElementById("customAssetTypeWrapper");
-const customAssetTypeInput = document.getElementById("customAssetType");
-const customModelWrapper = document.getElementById("customModelWrapper");
-const customModelInput = document.getElementById("customModel");
-const acquisitionTypeSelect = document.getElementById("acquisitionType");
-const leaseFieldsWrapper = document.getElementById("leaseFieldsWrapper");
 
 let assets = JSON.parse(localStorage.getItem("hivewayAssets")) || [];
 
@@ -113,45 +107,17 @@ const assetCatalog = {
   "Stripe Reader S700": ["Stripe Reader S700"],
   "Stripe Terminal Test Card": ["Stripe Terminal Test Card"],
   "Interac Test Card": ["Interac Test Card"],
-  "Other / Custom": ["Custom Model"]
+  "Other": ["Other"]
 };
 
-function updateCustomFields() {
-  const isCustomType = assetTypeSelect.value === "Other / Custom";
-
-  if (isCustomType) {
-    customAssetTypeWrapper.classList.remove("hidden");
-    customAssetTypeInput.required = true;
-    customModelWrapper.classList.remove("hidden");
-    customModelInput.required = true;
-    modelSelect.required = false;
-  } else {
-    customAssetTypeWrapper.classList.add("hidden");
-    customAssetTypeInput.required = false;
-    customAssetTypeInput.value = "";
-    customModelWrapper.classList.add("hidden");
-    customModelInput.required = false;
-    customModelInput.value = "";
-    modelSelect.required = true;
-  }
+function getValue(id) {
+  const element = document.getElementById(id);
+  return element ? element.value : "";
 }
 
-function updateLeaseFields() {
-  const isLeased = acquisitionTypeSelect.value === "Leased";
-
-  if (isLeased) {
-    leaseFieldsWrapper.classList.remove("hidden");
-    document.getElementById("leaseStatus").required = true;
-  } else {
-    leaseFieldsWrapper.classList.add("hidden");
-    document.getElementById("leaseStatus").required = false;
-    document.getElementById("leaseStatus").value = "";
-    document.getElementById("leaseProvider").value = "";
-    document.getElementById("leaseStartDate").value = "";
-    document.getElementById("leaseEndDate").value = "";
-    document.getElementById("leaseReturnDate").value = "";
-    document.getElementById("leaseReference").value = "";
-  }
+function setValue(id, value) {
+  const element = document.getElementById(id);
+  if (element) element.value = value || "";
 }
 
 function updateModelOptions(selectedModel = "") {
@@ -181,10 +147,7 @@ function updateModelOptions(selectedModel = "") {
 
 assetTypeSelect.addEventListener("change", () => {
   updateModelOptions();
-  updateCustomFields();
 });
-
-acquisitionTypeSelect.addEventListener("change", updateLeaseFields);
 
 function assetPrefix(type) {
   const map = {
@@ -199,16 +162,15 @@ function assetPrefix(type) {
     "Stripe Reader S700": "HW-S700",
     "Stripe Terminal Test Card": "HW-STC",
     "Interac Test Card": "HW-ITC",
-    "Other / Custom": "HW-CUS"
+    "Other": "HW-OTH"
   };
 
-  return map[type] || "HW-CUS";
+  return map[type] || "HW-AST";
 }
 
 function generateAssetId(type) {
   const prefix = assetPrefix(type);
   const count = assets.filter(asset => asset.id && asset.id.startsWith(prefix)).length + 1;
-
   return `${prefix}-${String(count).padStart(3, "0")}`;
 }
 
@@ -240,8 +202,6 @@ function renderAssets() {
 
   filteredAssets.forEach(asset => {
     const row = document.createElement("tr");
-    const acquisitionType = asset.acquisitionType || "Owned";
-    const leaseStatus = asset.leaseStatus || "";
 
     row.innerHTML = `
       <td>
@@ -252,8 +212,6 @@ function renderAssets() {
       <td>
         ${asset.assetType}
         <div class="small">${asset.model || ""}</div>
-        <div class="small">Condition: ${asset.condition || "Unknown"}</div>
-        <div class="small">Acquisition: ${acquisitionType}${leaseStatus ? ` — ${leaseStatus}` : ""}</div>
       </td>
 
       <td>${asset.serialNumber}</td>
@@ -277,11 +235,6 @@ function renderAssets() {
             ? `<button class="action-btn" onclick="returnAsset('${asset.id}')">Return</button>`
             : ""
         }
-        ${
-          asset.acquisitionType === "Leased" && asset.leaseStatus !== "Returned After Lease"
-            ? `<button class="action-btn" onclick="returnLeaseAsset('${asset.id}')">Lease Return</button>`
-            : ""
-        }
         <button class="action-btn delete-btn" onclick="deleteAsset('${asset.id}')">Delete</button>
       </td>
     `;
@@ -289,8 +242,10 @@ function renderAssets() {
     table.appendChild(row);
   });
 
-  document.getElementById("emptyState").style.display =
-    filteredAssets.length ? "none" : "block";
+  const emptyState = document.getElementById("emptyState");
+  if (emptyState) {
+    emptyState.style.display = filteredAssets.length ? "none" : "block";
+  }
 
   updateStats();
   renderReports();
@@ -300,14 +255,12 @@ function renderAssets() {
 form.addEventListener("submit", event => {
   event.preventDefault();
 
-  const editingId = document.getElementById("editingId").value;
-  const serialNumber = document.getElementById("serialNumber").value.trim();
+  const editingId = getValue("editingId");
+  const serialNumber = getValue("serialNumber").trim();
   const selectedType = assetTypeSelect.value;
-  const status = document.getElementById("status").value;
-  const assignedTo = document.getElementById("assignedTo").value.trim();
-  const employeeEmail = document.getElementById("employeeEmail").value.trim();
-  const acquisitionType = document.getElementById("acquisitionType").value;
-  const leaseStatus = document.getElementById("leaseStatus").value;
+  const status = getValue("status");
+  const assignedTo = getValue("assignedTo").trim();
+  const employeeEmail = getValue("employeeEmail").trim();
 
   const duplicate = assets.find(asset =>
     asset.serialNumber.toLowerCase() === serialNumber.toLowerCase() &&
@@ -319,79 +272,29 @@ form.addEventListener("submit", event => {
     return;
   }
 
-  if (selectedType === "Other / Custom" && !customAssetTypeInput.value.trim()) {
-    alert("Please enter a custom asset type.");
-    return;
-  }
-
-  if (selectedType === "Other / Custom" && !customModelInput.value.trim()) {
-    alert("Please enter a custom model.");
-    return;
-  }
-
   if (status === "Assigned" && (!assignedTo || !employeeEmail)) {
     alert("Assigned assets require both Assigned To and Employee Email.");
     return;
   }
 
-  if (acquisitionType === "Leased" && !leaseStatus) {
-    alert("Leased assets require a lease status.");
-    return;
-  }
-
-  if (
-    acquisitionType === "Leased" &&
-    leaseStatus === "Returned After Lease" &&
-    !document.getElementById("leaseReturnDate").value
-  ) {
-    alert("Returned leased assets require a lease return date.");
-    return;
-  }
-
-  const type =
-    selectedType === "Other / Custom"
-      ? customAssetTypeInput.value.trim()
-      : selectedType;
-
-  const model =
-    selectedType === "Other / Custom"
-      ? customModelInput.value.trim()
-      : modelSelect.value;
-
   const assetData = {
-    assetType: type,
-    model,
+    assetType: selectedType,
+    model: modelSelect.value,
     serialNumber,
     assignedTo,
     employeeEmail,
     status,
-    condition: document.getElementById("condition").value,
-    acquisitionType,
-    leaseStatus: acquisitionType === "Leased" ? leaseStatus : "",
-    leaseProvider: acquisitionType === "Leased" ? document.getElementById("leaseProvider").value : "",
-    leaseStartDate: acquisitionType === "Leased" ? document.getElementById("leaseStartDate").value : "",
-    leaseEndDate: acquisitionType === "Leased" ? document.getElementById("leaseEndDate").value : "",
-    leaseReturnDate: acquisitionType === "Leased" ? document.getElementById("leaseReturnDate").value : "",
-    leaseReference: acquisitionType === "Leased" ? document.getElementById("leaseReference").value : "",
-    location: document.getElementById("location").value,
-    purchaseDate: document.getElementById("purchaseDate").value,
-    warrantyExpiry: document.getElementById("warrantyExpiry").value,
-    vendor: document.getElementById("vendor").value,
-    cost: document.getElementById("cost").value,
-    notes: document.getElementById("notes").value,
+    location: getValue("location"),
+    notes: getValue("notes"),
     updatedAt: new Date().toISOString()
   };
 
   if (editingId) {
-    assets = assets.map(asset => {
-      if (asset.id !== editingId) return asset;
-
-      return {
-        ...asset,
-        ...assetData,
-        history: asset.history || []
-      };
-    });
+    assets = assets.map(asset =>
+      asset.id === editingId
+        ? { ...asset, ...assetData, history: asset.history || [] }
+        : asset
+    );
   } else {
     assets.push({
       id: generateAssetId(selectedType),
@@ -401,7 +304,7 @@ form.addEventListener("submit", event => {
         {
           type: "Created",
           date: new Date().toISOString(),
-          note: `Asset created as ${acquisitionType}.`
+          note: "Asset created."
         }
       ]
     });
@@ -416,51 +319,16 @@ function editAsset(id) {
   const asset = assets.find(item => item.id === id);
   if (!asset) return;
 
-  document.getElementById("editingId").value = asset.id;
+  setValue("editingId", asset.id);
+  assetTypeSelect.value = asset.assetType;
+  updateModelOptions(asset.model);
 
-  if (assetCatalog[asset.assetType]) {
-    assetTypeSelect.value = asset.assetType;
-    updateModelOptions(asset.model);
-    customAssetTypeWrapper.classList.add("hidden");
-    customAssetTypeInput.required = false;
-    customAssetTypeInput.value = "";
-    customModelWrapper.classList.add("hidden");
-    customModelInput.required = false;
-    customModelInput.value = "";
-    modelSelect.required = true;
-  } else {
-    assetTypeSelect.value = "Other / Custom";
-    updateModelOptions();
-    customAssetTypeWrapper.classList.remove("hidden");
-    customAssetTypeInput.required = true;
-    customAssetTypeInput.value = asset.assetType;
-    customModelWrapper.classList.remove("hidden");
-    customModelInput.required = true;
-    customModelInput.value = asset.model || "";
-    modelSelect.required = false;
-  }
-
-  document.getElementById("serialNumber").value = asset.serialNumber;
-  document.getElementById("assignedTo").value = asset.assignedTo || "";
-  document.getElementById("employeeEmail").value = asset.employeeEmail || "";
-  document.getElementById("status").value = asset.status;
-  document.getElementById("condition").value = asset.condition || "Unknown";
-  document.getElementById("acquisitionType").value = asset.acquisitionType || "Owned";
-  updateLeaseFields();
-
-  document.getElementById("leaseStatus").value = asset.leaseStatus || "";
-  document.getElementById("leaseProvider").value = asset.leaseProvider || "";
-  document.getElementById("leaseStartDate").value = asset.leaseStartDate || "";
-  document.getElementById("leaseEndDate").value = asset.leaseEndDate || "";
-  document.getElementById("leaseReturnDate").value = asset.leaseReturnDate || "";
-  document.getElementById("leaseReference").value = asset.leaseReference || "";
-
-  document.getElementById("location").value = asset.location || "";
-  document.getElementById("purchaseDate").value = asset.purchaseDate || "";
-  document.getElementById("warrantyExpiry").value = asset.warrantyExpiry || "";
-  document.getElementById("vendor").value = asset.vendor || "";
-  document.getElementById("cost").value = asset.cost || "";
-  document.getElementById("notes").value = asset.notes || "";
+  setValue("serialNumber", asset.serialNumber);
+  setValue("assignedTo", asset.assignedTo);
+  setValue("employeeEmail", asset.employeeEmail);
+  setValue("status", asset.status);
+  setValue("location", asset.location);
+  setValue("notes", asset.notes);
 
   document.getElementById("formTitle").textContent = "Edit Asset";
   document.getElementById("submitBtn").textContent = "Save Changes";
@@ -471,13 +339,11 @@ function editAsset(id) {
 
 function resetForm() {
   form.reset();
-  document.getElementById("editingId").value = "";
+  setValue("editingId", "");
   document.getElementById("formTitle").textContent = "Add Asset";
   document.getElementById("submitBtn").textContent = "Add Asset";
   document.getElementById("cancelEdit").classList.add("hidden");
   updateModelOptions();
-  updateCustomFields();
-  updateLeaseFields();
 }
 
 document.getElementById("cancelEdit").addEventListener("click", resetForm);
@@ -522,44 +388,6 @@ function returnAsset(id) {
   saveAssets();
   renderAssets();
   alert("Asset returned successfully.");
-}
-
-function returnLeaseAsset(id) {
-  const asset = assets.find(item => item.id === id);
-  if (!asset) return;
-
-  if (!confirm("Mark this leased asset as returned after lease?")) return;
-
-  const note = prompt("Lease return notes:", "Returned to leasing provider.");
-
-  assets = assets.map(item => {
-    if (item.id !== id) return item;
-
-    const historyItem = {
-      type: "Lease Returned",
-      date: new Date().toISOString(),
-      fromName: item.assignedTo || "Inventory",
-      fromEmail: item.employeeEmail || "",
-      toName: item.leaseProvider || "Leasing Provider",
-      toEmail: "",
-      note: note || "Returned to leasing provider."
-    };
-
-    return {
-      ...item,
-      assignedTo: "",
-      employeeEmail: "",
-      status: "Retired",
-      leaseStatus: "Returned After Lease",
-      leaseReturnDate: new Date().toISOString().slice(0, 10),
-      updatedAt: new Date().toISOString(),
-      history: [...(item.history || []), historyItem]
-    };
-  });
-
-  saveAssets();
-  renderAssets();
-  alert("Leased asset marked as returned.");
 }
 
 function viewAssetHistory(id) {
@@ -618,25 +446,15 @@ function viewAssetHistory(id) {
 
       <body>
         <h1>${asset.id}</h1>
+
         <section>
           <h2>${asset.assetType}</h2>
           <p>
             <strong>Model:</strong> ${asset.model || ""}<br>
             <strong>Serial:</strong> ${asset.serialNumber}<br>
             <strong>Status:</strong> ${asset.status}<br>
-            <strong>Condition:</strong> ${asset.condition || "Unknown"}<br>
-            <strong>Acquisition Type:</strong> ${asset.acquisitionType || "Owned"}<br>
-            <strong>Lease Status:</strong> ${asset.leaseStatus || ""}<br>
-            <strong>Leasing Company:</strong> ${asset.leaseProvider || ""}<br>
-            <strong>Lease Start:</strong> ${asset.leaseStartDate || ""}<br>
-            <strong>Lease End:</strong> ${asset.leaseEndDate || ""}<br>
-            <strong>Lease Return:</strong> ${asset.leaseReturnDate || ""}<br>
-            <strong>Lease Reference:</strong> ${asset.leaseReference || ""}<br>
             <strong>Assigned To:</strong> ${asset.assignedTo || "Unassigned"}<br>
-            <strong>Location:</strong> ${asset.location || ""}<br>
-            <strong>Vendor:</strong> ${asset.vendor || ""}<br>
-            <strong>Cost:</strong> ${asset.cost || ""}<br>
-            <strong>Warranty Expiry:</strong> ${asset.warrantyExpiry || ""}
+            <strong>Location:</strong> ${asset.location || ""}
           </p>
         </section>
 
@@ -672,19 +490,7 @@ document.getElementById("exportCsv").addEventListener("click", () => {
     "assignedTo",
     "employeeEmail",
     "status",
-    "condition",
-    "acquisitionType",
-    "leaseStatus",
-    "leaseProvider",
-    "leaseStartDate",
-    "leaseEndDate",
-    "leaseReturnDate",
-    "leaseReference",
     "location",
-    "purchaseDate",
-    "warrantyExpiry",
-    "vendor",
-    "cost",
     "notes",
     "createdAt",
     "updatedAt",
@@ -722,15 +528,7 @@ document.getElementById("importJson").addEventListener("change", event => {
 
       assets = imported.map(asset => ({
         ...asset,
-        history: asset.history || [],
-        condition: asset.condition || "Unknown",
-        acquisitionType: asset.acquisitionType || "Owned",
-        leaseStatus: asset.leaseStatus || "",
-        leaseProvider: asset.leaseProvider || "",
-        leaseStartDate: asset.leaseStartDate || "",
-        leaseEndDate: asset.leaseEndDate || "",
-        leaseReturnDate: asset.leaseReturnDate || "",
-        leaseReference: asset.leaseReference || ""
+        history: asset.history || []
       }));
 
       saveAssets();
@@ -748,8 +546,6 @@ function renderReports() {
   renderGroupedReport("employeeReport", groupByEmployee());
   renderGroupedReport("statusReport", groupByField("status"));
   renderGroupedReport("typeReport", groupByField("assetType"));
-  renderGroupedReport("acquisitionReport", groupByField("acquisitionType"));
-  renderLeaseReport();
 }
 
 function groupByEmployee() {
@@ -774,7 +570,7 @@ function groupByField(field) {
   const groups = {};
 
   assets.forEach(asset => {
-    const label = asset[field] || (field === "acquisitionType" ? "Owned" : "Unknown");
+    const label = asset[field] || "Unknown";
 
     if (!groups[label]) {
       groups[label] = { label, count: 0 };
@@ -788,6 +584,8 @@ function groupByField(field) {
 
 function renderGroupedReport(elementId, rows) {
   const body = document.getElementById(elementId);
+  if (!body) return;
+
   body.innerHTML = "";
 
   if (!rows.length) {
@@ -821,42 +619,6 @@ function renderGroupedReport(elementId, rows) {
     });
 }
 
-function renderLeaseReport() {
-  const body = document.getElementById("leaseReport");
-  body.innerHTML = "";
-
-  const leasedAssets = assets
-    .filter(asset =>
-      asset.acquisitionType === "Leased" &&
-      asset.leaseStatus !== "Returned After Lease"
-    )
-    .sort((a, b) => {
-      const dateA = a.leaseEndDate || "9999-12-31";
-      const dateB = b.leaseEndDate || "9999-12-31";
-      return dateA.localeCompare(dateB);
-    });
-
-  if (!leasedAssets.length) {
-    body.innerHTML = `<tr><td colspan="3">No active leased assets.</td></tr>`;
-    return;
-  }
-
-  leasedAssets.forEach(asset => {
-    const tr = document.createElement("tr");
-
-    tr.innerHTML = `
-      <td>
-        <span class="report-link" onclick="viewAssetHistory('${asset.id}')">${asset.id}</span>
-        <div class="small">${asset.assetType} — ${asset.model || ""}</div>
-      </td>
-      <td>${asset.leaseEndDate || "Not set"}</td>
-      <td>${asset.leaseStatus || "Active Lease"}</td>
-    `;
-
-    body.appendChild(tr);
-  });
-}
-
 function showEmployeeAssets(name, email) {
   const employeeAssets = assets.filter(asset =>
     (asset.assignedTo || "Unassigned") === name &&
@@ -887,10 +649,6 @@ function showEmployeeAssets(name, email) {
             ${asset.model || ""}<br>
             Serial: ${asset.serialNumber}<br>
             Status: ${asset.status}<br>
-            Condition: ${asset.condition || "Unknown"}<br>
-            Acquisition: ${asset.acquisitionType || "Owned"}<br>
-            Lease Status: ${asset.leaseStatus || ""}<br>
-            Lease End: ${asset.leaseEndDate || ""}<br>
             Location: ${asset.location || ""}
           </p>
           <h4>History</h4>
@@ -967,46 +725,50 @@ function updateTransferOptions() {
   });
 }
 
-document.getElementById("transferForm").addEventListener("submit", event => {
-  event.preventDefault();
+const transferForm = document.getElementById("transferForm");
 
-  const assetId = document.getElementById("transferAsset").value;
-  const newName = document.getElementById("transferTo").value.trim();
-  const newEmail = document.getElementById("transferEmail").value.trim();
-  const newLocation = document.getElementById("transferLocation").value.trim();
-  const note = document.getElementById("transferNotes").value.trim();
+if (transferForm) {
+  transferForm.addEventListener("submit", event => {
+    event.preventDefault();
 
-  assets = assets.map(asset => {
-    if (asset.id !== assetId) return asset;
+    const assetId = getValue("transferAsset");
+    const newName = getValue("transferTo").trim();
+    const newEmail = getValue("transferEmail").trim();
+    const newLocation = getValue("transferLocation").trim();
+    const note = getValue("transferNotes").trim();
 
-    const historyItem = {
-      type: "Transfer",
-      date: new Date().toISOString(),
-      fromName: asset.assignedTo || "Unassigned",
-      fromEmail: asset.employeeEmail || "",
-      toName: newName,
-      toEmail: newEmail,
-      note
-    };
+    assets = assets.map(asset => {
+      if (asset.id !== assetId) return asset;
 
-    return {
-      ...asset,
-      assignedTo: newName,
-      employeeEmail: newEmail,
-      location: newLocation || asset.location,
-      status: "Assigned",
-      updatedAt: new Date().toISOString(),
-      history: [...(asset.history || []), historyItem]
-    };
+      const historyItem = {
+        type: "Transfer",
+        date: new Date().toISOString(),
+        fromName: asset.assignedTo || "Unassigned",
+        fromEmail: asset.employeeEmail || "",
+        toName: newName,
+        toEmail: newEmail,
+        note
+      };
+
+      return {
+        ...asset,
+        assignedTo: newName,
+        employeeEmail: newEmail,
+        location: newLocation || asset.location,
+        status: "Assigned",
+        updatedAt: new Date().toISOString(),
+        history: [...(asset.history || []), historyItem]
+      };
+    });
+
+    saveAssets();
+    renderAssets();
+    updateTransferOptions();
+    event.target.reset();
+
+    alert("Asset transferred successfully.");
   });
-
-  saveAssets();
-  renderAssets();
-  updateTransferOptions();
-  event.target.reset();
-
-  alert("Asset transferred successfully.");
-});
+}
 
 function escapeForAttribute(value) {
   return String(value || "")
@@ -1025,7 +787,5 @@ function downloadFile(filename, content) {
 }
 
 updateModelOptions();
-updateCustomFields();
-updateLeaseFields();
 renderAssets();
 updateTransferOptions();
