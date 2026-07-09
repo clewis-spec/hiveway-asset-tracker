@@ -11,19 +11,12 @@
   <main class="app">
 
     <header class="topbar">
-      <div class="brand-block">
-        <div class="logo-wrap">
-          <img src="hiveway-_1_.gif" alt="Hiveway Logo" class="logo" />
-        </div>
+      <img src="hiveway-_1_.gif" alt="Hiveway Logo" class="logo" />
 
-        <div class="brand-copy">
-          <p class="eyebrow">Hiveway Operations</p>
-          <h1>Asset Manager</h1>
-          <p>Track devices, Stripe terminals, test cards, transfers, leases, and equipment assignments.</p>
-        </div>
+      <div>
+        <h1>Asset Manager</h1>
+        <p>Track company devices, Stripe terminals, test cards, transfers, and equipment assignments.</p>
       </div>
-
-      <div class="header-pill">Inventory Control</div>
     </header>
 
     <section class="stats">
@@ -52,6 +45,7 @@
       <button class="tab active" data-tab="inventoryView">Inventory</button>
       <button class="tab" data-tab="reportsView">Reports</button>
       <button class="tab" data-tab="transferView">Transfer</button>
+      <button class="tab" data-tab="catalogView">Catalog</button>
     </nav>
 
     <section id="inventoryView" class="tab-view active-view">
@@ -77,23 +71,13 @@
               <option>Stripe Reader S700</option>
               <option>Stripe Terminal Test Card</option>
               <option>Interac Test Card</option>
-              <option value="Other / Custom">Other / Custom</option>
+              <option>Other</option>
             </select>
-
-            <div id="customAssetTypeWrapper" class="hidden">
-              <label>Custom Asset Type</label>
-              <input id="customAssetType" placeholder="Example: Monitor, Dock, Keyboard, Router" />
-            </div>
 
             <label>Model</label>
             <select id="model" required>
               <option value="">Select asset type first</option>
             </select>
-
-            <div id="customModelWrapper" class="hidden">
-              <label>Custom Model</label>
-              <input id="customModel" placeholder="Example: Dell UltraSharp U2723QE" />
-            </div>
 
             <label>Serial Number / Unique ID</label>
             <input id="serialNumber" placeholder="Serial number or unique identifier" required />
@@ -113,63 +97,11 @@
               <option>Lost</option>
             </select>
 
-            <label>Condition</label>
-            <select id="condition">
-              <option>New</option>
-              <option>Good</option>
-              <option>Damaged</option>
-              <option>Missing Accessories</option>
-              <option>Unknown</option>
-            </select>
-
-            <label>Acquisition Type</label>
-            <select id="acquisitionType">
-              <option>Owned</option>
-              <option>Leased</option>
-            </select>
-
-            <div id="leaseFieldsWrapper" class="hidden">
-              <label>Lease Status</label>
-              <select id="leaseStatus">
-                <option value="">Select lease status</option>
-                <option>Active Lease</option>
-                <option>Returned After Lease</option>
-                <option>Lease Ended / Buyout</option>
-              </select>
-
-              <label>Leasing Company</label>
-              <input id="leaseProvider" placeholder="Leasing provider or company" />
-
-              <label>Lease Start Date</label>
-              <input id="leaseStartDate" type="date" />
-
-              <label>Lease End Date</label>
-              <input id="leaseEndDate" type="date" />
-
-              <label>Lease Return Date</label>
-              <input id="leaseReturnDate" type="date" />
-
-              <label>Lease Contract / Reference #</label>
-              <input id="leaseReference" placeholder="Contract, PO, or lease reference" />
-            </div>
-
             <label>Location</label>
             <input id="location" placeholder="Office, city, team, or department" />
 
-            <label>Purchase Date</label>
-            <input id="purchaseDate" type="date" />
-
-            <label>Warranty Expiry</label>
-            <input id="warrantyExpiry" type="date" />
-
-            <label>Vendor</label>
-            <input id="vendor" placeholder="Apple, Stripe, Best Buy, etc." />
-
-            <label>Cost</label>
-            <input id="cost" type="number" step="0.01" placeholder="0.00" />
-
             <label>Notes</label>
-            <textarea id="notes" placeholder="Notes, kit contents, condition, lease notes, etc."></textarea>
+            <textarea id="notes" placeholder="Notes, kit contents, condition, etc."></textarea>
 
             <button type="submit" id="submitBtn">Add Asset</button>
             <button type="button" id="cancelEdit" class="secondary hidden">Cancel Edit</button>
@@ -180,8 +112,7 @@
           <div class="section-head">
             <div>
               <h2>Inventory</h2>
-              <p>Search, import, export, edit, return, lease-return, and manage assets.</p>
-              <p class="small"><strong>Backup reminder:</strong> This app stores data in your browser. Export JSON regularly.</p>
+              <p>Search, import, export, edit, and manage assets.</p>
             </div>
 
             <div class="actions">
@@ -195,7 +126,7 @@
             </div>
           </div>
 
-          <input id="search" class="search" placeholder="Search by asset, serial, employee, model, status, ownership, lease, condition, or location..." />
+          <input id="search" class="search" placeholder="Search by asset, serial, employee, model, or status..." />
 
           <div class="table-wrap">
             <table>
@@ -266,33 +197,6 @@
               <tbody id="typeReport"></tbody>
             </table>
           </div>
-
-          <div>
-            <h3>Assets by Acquisition</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Acquisition</th>
-                  <th>Total</th>
-                </tr>
-              </thead>
-              <tbody id="acquisitionReport"></tbody>
-            </table>
-          </div>
-
-          <div>
-            <h3>Upcoming Lease Returns</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Asset</th>
-                  <th>Lease End</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="leaseReport"></tbody>
-            </table>
-          </div>
         </div>
       </section>
     </section>
@@ -322,6 +226,62 @@
 
           <button type="submit">Transfer Asset</button>
         </form>
+      </section>
+    </section>
+
+    <section id="catalogView" class="tab-view">
+      <section class="catalog-layout">
+
+        <section class="card catalog-card">
+          <h2>Catalog Manager</h2>
+          <p>Add or remove model options without editing code.</p>
+
+          <form id="catalogForm">
+            <label>Asset Type</label>
+            <select id="catalogAssetType">
+              <option>MacBook</option>
+              <option>iPhone</option>
+              <option>iPad</option>
+              <option>Android Phone</option>
+              <option>BBPOS WisePad 3</option>
+              <option>BBPOS WisePOS E</option>
+              <option>BBPOS WisePOS E Dock</option>
+              <option>Stripe Reader M2</option>
+              <option>Stripe Reader S700</option>
+              <option>Stripe Terminal Test Card</option>
+              <option>Interac Test Card</option>
+              <option>Other</option>
+            </select>
+
+            <label>New Model</label>
+            <input id="newCatalogModel" placeholder="Example: MacBook Pro (14-inch, M5)" />
+
+            <button type="submit">Add Model</button>
+          </form>
+
+          <div class="catalog-actions">
+            <button id="exportCatalog">Export Catalog</button>
+
+            <label class="import-btn">
+              Import Catalog
+              <input type="file" id="importCatalog" accept=".json" hidden />
+            </label>
+
+            <button id="resetCatalog" class="secondary">Reset Default Catalog</button>
+          </div>
+        </section>
+
+        <section class="card catalog-card">
+          <div class="section-head">
+            <div>
+              <h2>Models</h2>
+              <p id="catalogModelCount">Select an asset type to view models.</p>
+            </div>
+          </div>
+
+          <div id="catalogModelList" class="catalog-model-list"></div>
+        </section>
+
       </section>
     </section>
 
