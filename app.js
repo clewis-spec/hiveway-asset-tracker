@@ -30,6 +30,7 @@ const assetCatalog = {
     "MacBook Pro 14-inch, M4 (2024)",
     "MacBook Pro 14-inch, M4 Pro (2024)",
     "MacBook Pro 16-inch, M4 Max (2024)",
+    "MacBook Pro 14-inch, M5 Pro (2025)
     "Other MacBook"
   ],
 
