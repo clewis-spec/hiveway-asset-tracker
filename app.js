@@ -6,7 +6,7 @@ const modelSelect = document.getElementById("model");
 
 let assets = JSON.parse(localStorage.getItem("hivewayAssets")) || [];
 
-const assetCatalog = {
+const defaultAssetCatalog = {
   "MacBook": [
     "MacBook Air 13-inch, M1 (2020)",
     "MacBook Pro 13-inch, M1 (2020)",
@@ -27,7 +27,6 @@ const assetCatalog = {
     "MacBook Pro 14-inch, M5 Pro (2025)",
     "Other MacBook"
   ],
-
   "iPhone": [
     "iPhone 12",
     "iPhone 12 mini",
@@ -52,7 +51,6 @@ const assetCatalog = {
     "iPhone SE 3rd Generation (2022)",
     "Other iPhone"
   ],
-
   "iPad": [
     "iPad 10th Generation",
     "iPad 11th Generation",
@@ -70,7 +68,6 @@ const assetCatalog = {
     "iPad Pro 13-inch, M4",
     "Other iPad"
   ],
-
   "Android Phone": [
     "Google Pixel 6",
     "Google Pixel 6 Pro",
@@ -99,7 +96,6 @@ const assetCatalog = {
     "Samsung Galaxy S25 Ultra",
     "Other Android"
   ],
-
   "BBPOS WisePad 3": ["BBPOS WisePad 3"],
   "BBPOS WisePOS E": ["BBPOS WisePOS E"],
   "BBPOS WisePOS E Dock": ["BBPOS WisePOS E Dock"],
@@ -109,6 +105,14 @@ const assetCatalog = {
   "Interac Test Card": ["Interac Test Card"],
   "Other": ["Other"]
 };
+
+let assetCatalog =
+  JSON.parse(localStorage.getItem("hivewayAssetCatalog")) ||
+  structuredClone(defaultAssetCatalog);
+
+function saveCatalog() {
+  localStorage.setItem("hivewayAssetCatalog", JSON.stringify(assetCatalog));
+}
 
 function getValue(id) {
   const element = document.getElementById(id);
@@ -770,6 +774,164 @@ if (transferForm) {
   });
 }
 
+function renderCatalogManager() {
+  const catalogAssetType = document.getElementById("catalogAssetType");
+  const catalogModelList = document.getElementById("catalogModelList");
+  const catalogModelCount = document.getElementById("catalogModelCount");
+
+  if (!catalogAssetType || !catalogModelList || !catalogModelCount) return;
+
+  const type = catalogAssetType.value;
+  const models = assetCatalog[type] || [];
+
+  catalogModelCount.textContent = `${models.length} model option${models.length === 1 ? "" : "s"} for ${type}.`;
+  catalogModelList.innerHTML = "";
+
+  if (!models.length) {
+    catalogModelList.innerHTML = `<p class="empty">No models yet for this asset type.</p>`;
+    return;
+  }
+
+  models.forEach((model, index) => {
+    const row = document.createElement("div");
+    row.className = "catalog-model-row";
+
+    row.innerHTML = `
+      <span>${model}</span>
+      <button type="button" onclick="deleteCatalogModel('${escapeForAttribute(type)}', ${index})">Delete</button>
+    `;
+
+    catalogModelList.appendChild(row);
+  });
+}
+
+const catalogAssetType = document.getElementById("catalogAssetType");
+const catalogForm = document.getElementById("catalogForm");
+
+if (catalogAssetType) {
+  catalogAssetType.addEventListener("change", renderCatalogManager);
+}
+
+if (catalogForm) {
+  catalogForm.addEventListener("submit", event => {
+    event.preventDefault();
+
+    const type = getValue("catalogAssetType");
+    const newModel = getValue("newCatalogModel").trim();
+
+    if (!newModel) {
+      alert("Please enter a model name.");
+      return;
+    }
+
+    if (!assetCatalog[type]) {
+      assetCatalog[type] = [];
+    }
+
+    const alreadyExists = assetCatalog[type].some(
+      model => model.toLowerCase() === newModel.toLowerCase()
+    );
+
+    if (alreadyExists) {
+      alert("That model already exists in this asset type.");
+      return;
+    }
+
+    assetCatalog[type].push(newModel);
+    saveCatalog();
+
+    if (assetTypeSelect.value === type) {
+      updateModelOptions(newModel);
+    }
+
+    setValue("newCatalogModel", "");
+    renderCatalogManager();
+
+    alert("Model added to catalog.");
+  });
+}
+
+function deleteCatalogModel(type, index) {
+  if (!confirm("Delete this catalog model? Existing assets will not be changed.")) return;
+
+  assetCatalog[type].splice(index, 1);
+  saveCatalog();
+
+  if (assetTypeSelect.value === type) {
+    updateModelOptions();
+  }
+
+  renderCatalogManager();
+}
+
+const exportCatalogButton = document.getElementById("exportCatalog");
+
+if (exportCatalogButton) {
+  exportCatalogButton.addEventListener("click", () => {
+    downloadFile("hiveway-asset-catalog.json", JSON.stringify(assetCatalog, null, 2));
+  });
+}
+
+const importCatalogInput = document.getElementById("importCatalog");
+
+if (importCatalogInput) {
+  importCatalogInput.addEventListener("change", event => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      try {
+        const imported = JSON.parse(reader.result);
+
+        if (
+          typeof imported !== "object" ||
+          Array.isArray(imported) ||
+          imported === null
+        ) {
+          alert("Invalid catalog file. Expected an object of asset types and model arrays.");
+          return;
+        }
+
+        const cleanedCatalog = {};
+
+        Object.keys(defaultAssetCatalog).forEach(type => {
+          cleanedCatalog[type] = Array.isArray(imported[type])
+            ? imported[type]
+            : defaultAssetCatalog[type];
+        });
+
+        assetCatalog = cleanedCatalog;
+        saveCatalog();
+        updateModelOptions();
+        renderCatalogManager();
+
+        alert("Catalog imported successfully.");
+      } catch {
+        alert("Could not read catalog JSON file.");
+      }
+    };
+
+    reader.readAsText(file);
+  });
+}
+
+const resetCatalogButton = document.getElementById("resetCatalog");
+
+if (resetCatalogButton) {
+  resetCatalogButton.addEventListener("click", () => {
+    if (!confirm("Reset catalog to the default list?")) return;
+
+    assetCatalog = structuredClone(defaultAssetCatalog);
+    saveCatalog();
+    updateModelOptions();
+    renderCatalogManager();
+
+    alert("Catalog reset to default.");
+  });
+}
+
 function escapeForAttribute(value) {
   return String(value || "")
     .replaceAll("\\", "\\\\")
@@ -789,3 +951,4 @@ function downloadFile(filename, content) {
 updateModelOptions();
 renderAssets();
 updateTransferOptions();
+renderCatalogManager();
