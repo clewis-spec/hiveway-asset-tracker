@@ -288,3 +288,92 @@ Potential applications include:
 - Vendor Manager
 - Executive Operations Dashboard
 - Internal AI Assistant
+Data Storage
+
+HiveOps currently stores application data in the browser using localStorage.
+
+This means:
+
+Data persists in the same browser.
+Data is not automatically shared between users.
+Clearing browser storage may remove locally stored data.
+JSON exports should be used as backups.
+
+A future release will introduce shared repository-backed or database-backed storage.
+
+Backups
+
+Asset data should be backed up regularly using:
+
+Export JSON for a full application backup
+Export CSV for spreadsheet reporting
+Export Catalog for the device model catalog
+
+JSON exports preserve more application detail than CSV exports.
+
+Development Workflow
+
+HiveOps development follows a sprint-based workflow:
+
+Define the sprint goal.
+Build one major capability.
+Deploy through GitHub Pages.
+Complete functional testing.
+Update the changelog.
+Begin the next sprint.
+Deployment
+
+HiveOps is hosted using GitHub Pages.
+
+Repository:
+
+clewis-spec/hiveway-asset-tracker
+
+Production application:
+
+https://clewis-spec.github.io/hiveway-asset-tracker/
+Technology
+
+HiveOps currently uses:
+
+HTML
+CSS
+JavaScript
+GitHub
+GitHub Pages
+Browser localStorage
+
+No external framework is currently required.
+
+Product Direction
+
+HiveOps is intended to become a broader internal operations platform containing applications such as:
+
+Asset Manager
+Contract Manager
+Jamf Operations Center
+Stripe Device Fleet Manager
+Sales Pipeline Dashboard
+Knowledge Hub
+Executive Operations Dashboard
+Ownership
+
+Developed for:
+
+Hiveway Inc.
+
+Product owner:
+
+Chris Lewis
+
+Internal Use
+
+HiveOps is an internal Hiveway application.
+
+The source code, application data, workflows, and documentation are intended for authorized Hiveway use.
+
+
+Commit message:
+
+```text
+Document HiveOps project overview
