@@ -1,13 +1,15 @@
 window.HAM = window.HAM || {};
 
-HAM.assets = [];
+HAM.ASSET_STORAGE_KEY = "hivewayAssets";
+HAM.CATALOG_STORAGE_KEY = "hivewayAssetCatalog";
 
+HAM.assets = [];
 HAM.assetCatalog = {};
 
 HAM.loadAssets = function () {
   try {
     const storedAssets = JSON.parse(
-      localStorage.getItem("hivewayAssets")
+      localStorage.getItem(HAM.ASSET_STORAGE_KEY)
     );
 
     HAM.assets = Array.isArray(storedAssets)
@@ -22,15 +24,17 @@ HAM.loadAssets = function () {
 HAM.loadCatalog = function () {
   try {
     const storedCatalog = JSON.parse(
-      localStorage.getItem("hivewayAssetCatalog")
+      localStorage.getItem(HAM.CATALOG_STORAGE_KEY)
     );
 
-    HAM.assetCatalog =
+    const isValidCatalog =
       storedCatalog &&
       typeof storedCatalog === "object" &&
-      !Array.isArray(storedCatalog)
-        ? storedCatalog
-        : structuredClone(HAM.defaultAssetCatalog);
+      !Array.isArray(storedCatalog);
+
+    HAM.assetCatalog = isValidCatalog
+      ? storedCatalog
+      : structuredClone(HAM.defaultAssetCatalog);
   } catch (error) {
     console.error("Could not load asset catalog:", error);
 
@@ -40,26 +44,45 @@ HAM.loadCatalog = function () {
 };
 
 HAM.saveAssets = function () {
+  /*
+   * Ownership may not exist during the earliest startup stage.
+   * Once ownership.js has loaded, every saved asset is normalized
+   * before being written to localStorage.
+   */
+  if (typeof HAM.ensureOwnership === "function") {
+    HAM.assets = HAM.assets.map(asset =>
+      HAM.ensureOwnership(asset)
+    );
+  }
+
   localStorage.setItem(
-    "hivewayAssets",
+    HAM.ASSET_STORAGE_KEY,
     JSON.stringify(HAM.assets)
   );
 };
 
 HAM.saveCatalog = function () {
   localStorage.setItem(
-    "hivewayAssetCatalog",
+    HAM.CATALOG_STORAGE_KEY,
     JSON.stringify(HAM.assetCatalog)
   );
 };
 
-HAM.downloadFile = function (filename, content, mimeType = "text/plain") {
-  const blob = new Blob([content], {
-    type: mimeType
-  });
+HAM.downloadFile = function (
+  filename,
+  content,
+  mimeType = "text/plain"
+) {
+  const blob = new Blob(
+    [content],
+    { type: mimeType }
+  );
 
-  const link = document.createElement("a");
-  const objectUrl = URL.createObjectURL(blob);
+  const objectUrl =
+    URL.createObjectURL(blob);
+
+  const link =
+    document.createElement("a");
 
   link.href = objectUrl;
   link.download = filename;
