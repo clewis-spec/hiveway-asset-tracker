@@ -1,84 +1,267 @@
 window.HAM = window.HAM || {};
 
 HAM.assetPrefix = function (type) {
-  return HAM.assetPrefixes[type] || "HW-AST";
+  return (
+    HAM.assetPrefixes[type] ||
+    "HW-AST"
+  );
 };
 
 HAM.generateAssetId = function (type) {
-  const prefix = HAM.assetPrefix(type);
-  const count = HAM.assets.filter(asset => asset.id && asset.id.startsWith(prefix)).length + 1;
-  return `${prefix}-${String(count).padStart(3, "0")}`;
+  const prefix =
+    HAM.assetPrefix(type);
+
+  const usedNumbers =
+    HAM.assets
+      .filter(asset => {
+        return (
+          asset.id &&
+          asset.id.startsWith(
+            `${prefix}-`
+          )
+        );
+      })
+      .map(asset => {
+        const match =
+          asset.id.match(
+            /-(\d+)$/
+          );
+
+        return match
+          ? Number(match[1])
+          : 0;
+      });
+
+  const nextNumber =
+    usedNumbers.length > 0
+      ? Math.max(...usedNumbers) + 1
+      : 1;
+
+  return `${prefix}-${String(
+    nextNumber
+  ).padStart(3, "0")}`;
 };
 
 HAM.updateStats = function () {
-  document.getElementById("totalAssets").textContent = HAM.assets.length;
+  document.getElementById(
+    "totalAssets"
+  ).textContent =
+    HAM.assets.length;
 
-  document.getElementById("assignedAssets").textContent =
-    HAM.assets.filter(asset => asset.status === "Assigned").length;
+  document.getElementById(
+    "assignedAssets"
+  ).textContent =
+    HAM.assets.filter(
+      asset =>
+        asset.status === "Assigned"
+    ).length;
 
-  document.getElementById("availableAssets").textContent =
-    HAM.assets.filter(asset => asset.status === "Available").length;
+  document.getElementById(
+    "availableAssets"
+  ).textContent =
+    HAM.assets.filter(
+      asset =>
+        asset.status === "Available"
+    ).length;
 
-  document.getElementById("issueAssets").textContent =
-    HAM.assets.filter(asset => ["Repair", "Lost"].includes(asset.status)).length;
+  document.getElementById(
+    "issueAssets"
+  ).textContent =
+    HAM.assets.filter(asset =>
+      [
+        "Repair",
+        "Lost"
+      ].includes(asset.status)
+    ).length;
 };
 
 HAM.renderAssets = function () {
-  const table = document.getElementById("assetTable");
-  const search = document.getElementById("search");
-  const query = search.value.toLowerCase();
+  const table =
+    document.getElementById(
+      "assetTable"
+    );
 
-  const filteredAssets = HAM.assets.filter(asset =>
-    JSON.stringify(asset).toLowerCase().includes(query)
-  );
+  const search =
+    document.getElementById(
+      "search"
+    );
+
+  const query =
+    String(search.value || "")
+      .trim()
+      .toLowerCase();
+
+  const filteredAssets =
+    HAM.assets.filter(asset => {
+      return JSON.stringify(asset)
+        .toLowerCase()
+        .includes(query);
+    });
 
   table.innerHTML = "";
 
   filteredAssets.forEach(asset => {
-    const row = document.createElement("tr");
+    const normalizedAsset =
+      HAM.ensureOwnership(asset);
+
+    const ownership =
+      normalizedAsset.ownership;
+
+    const ownershipType =
+      ownership.acquisitionType ||
+      HAM.OWNERSHIP_TYPES.UNKNOWN;
+
+    const ownershipClass =
+      HAM.getOwnershipBadgeClass(
+        ownershipType
+      );
+
+    const ownershipDetail =
+      ownershipType ===
+        HAM.OWNERSHIP_TYPES.LEASED
+        ? [
+            ownership.lease.provider,
+            ownership.lease.status
+          ]
+            .filter(Boolean)
+            .join(" · ")
+        : [
+            ownership.vendor,
+            HAM.formatMoney(
+              ownership.cost,
+              ownership.currency
+            )
+          ]
+            .filter(Boolean)
+            .join(" · ");
+
+    const row =
+      document.createElement("tr");
 
     row.innerHTML = `
       <td>
-        <div class="asset-id">${asset.id}</div>
-        <div class="small">${asset.createdAt ? new Date(asset.createdAt).toLocaleDateString() : ""}</div>
+        <div class="asset-id">
+          ${normalizedAsset.id}
+        </div>
+
+        <div class="small">
+          ${
+            normalizedAsset.createdAt
+              ? new Date(
+                  normalizedAsset.createdAt
+                ).toLocaleDateString()
+              : ""
+          }
+        </div>
       </td>
 
       <td>
-        ${asset.assetType}
-        <div class="small">${asset.model || ""}</div>
-      </td>
+        ${normalizedAsset.assetType}
 
-      <td>${asset.serialNumber}</td>
-
-      <td>
-        ${asset.assignedTo || "Unassigned"}
-        <div class="small">${asset.employeeEmail || ""}</div>
+        <div class="small">
+          ${normalizedAsset.model || ""}
+        </div>
       </td>
 
       <td>
-        <span class="badge ${asset.status}">${asset.status}</span>
+        ${normalizedAsset.serialNumber}
       </td>
 
-      <td>${asset.location || ""}</td>
-
       <td>
-        <button class="action-btn" onclick="HAM.editAsset('${asset.id}')">Edit</button>
-        <button class="action-btn" onclick="HAM.viewAssetHistory('${asset.id}')">History</button>
         ${
-          asset.status === "Assigned"
-            ? `<button class="action-btn" onclick="HAM.returnAsset('${asset.id}')">Return</button>`
+          normalizedAsset.assignedTo ||
+          "Unassigned"
+        }
+
+        <div class="small">
+          ${
+            normalizedAsset.employeeEmail ||
+            ""
+          }
+        </div>
+      </td>
+
+      <td>
+        <span
+          class="badge ${normalizedAsset.status}"
+        >
+          ${normalizedAsset.status}
+        </span>
+      </td>
+
+      <td>
+        <span
+          class="ownership-badge ${ownershipClass}"
+        >
+          ${ownershipType}
+        </span>
+
+        ${
+          ownershipDetail
+            ? `
+              <div class="small">
+                ${ownershipDetail}
+              </div>
+            `
             : ""
         }
-        <button class="action-btn delete-btn" onclick="HAM.deleteAsset('${asset.id}')">Delete</button>
+      </td>
+
+      <td>
+        ${normalizedAsset.location || ""}
+      </td>
+
+      <td>
+        <button
+          class="action-btn"
+          onclick="HAM.editAsset('${normalizedAsset.id}')"
+        >
+          Edit
+        </button>
+
+        <button
+          class="action-btn"
+          onclick="HAM.viewAssetHistory('${normalizedAsset.id}')"
+        >
+          History
+        </button>
+
+        ${
+          normalizedAsset.status ===
+          "Assigned"
+            ? `
+              <button
+                class="action-btn"
+                onclick="HAM.returnAsset('${normalizedAsset.id}')"
+              >
+                Return
+              </button>
+            `
+            : ""
+        }
+
+        <button
+          class="action-btn delete-btn"
+          onclick="HAM.deleteAsset('${normalizedAsset.id}')"
+        >
+          Delete
+        </button>
       </td>
     `;
 
     table.appendChild(row);
   });
 
-  const emptyState = document.getElementById("emptyState");
+  const emptyState =
+    document.getElementById(
+      "emptyState"
+    );
+
   if (emptyState) {
-    emptyState.style.display = filteredAssets.length ? "none" : "block";
+    emptyState.style.display =
+      filteredAssets.length > 0
+        ? "none"
+        : "block";
   }
 
   HAM.updateStats();
@@ -87,194 +270,809 @@ HAM.renderAssets = function () {
 };
 
 HAM.initInventory = function () {
-  const form = document.getElementById("assetForm");
-  const search = document.getElementById("search");
-  const cancelEdit = document.getElementById("cancelEdit");
-
-  form.addEventListener("submit", event => {
-    event.preventDefault();
-
-    const editingId = HAM.getValue("editingId");
-    const serialNumber = HAM.getValue("serialNumber").trim();
-    const selectedType = HAM.getValue("assetType");
-    const status = HAM.getValue("status");
-    const assignedTo = HAM.getValue("assignedTo").trim();
-    const employeeEmail = HAM.getValue("employeeEmail").trim();
-
-    const duplicate = HAM.assets.find(asset =>
-      asset.serialNumber.toLowerCase() === serialNumber.toLowerCase() &&
-      asset.id !== editingId
+  const form =
+    document.getElementById(
+      "assetForm"
     );
 
-    if (duplicate) {
-      alert("This serial number / unique ID already exists.");
-      return;
-    }
+  const search =
+    document.getElementById(
+      "search"
+    );
 
-    if (status === "Assigned" && (!assignedTo || !employeeEmail)) {
-      alert("Assigned assets require both Assigned To and Employee Email.");
-      return;
-    }
+  const cancelEdit =
+    document.getElementById(
+      "cancelEdit"
+    );
 
-    const assetData = {
-      assetType: selectedType,
-      model: HAM.getValue("model"),
-      serialNumber,
-      assignedTo,
-      employeeEmail,
-      status,
-      location: HAM.getValue("location"),
-      notes: HAM.getValue("notes"),
-      updatedAt: new Date().toISOString()
-    };
+  form.addEventListener(
+    "submit",
+    event => {
+      event.preventDefault();
 
-    if (editingId) {
-      HAM.assets = HAM.assets.map(asset =>
-        asset.id === editingId
-          ? { ...asset, ...assetData, history: asset.history || [] }
-          : asset
-      );
-    } else {
-      HAM.assets.push({
-        id: HAM.generateAssetId(selectedType),
-        ...assetData,
-        createdAt: new Date().toISOString(),
-        history: [
-          {
-            type: "Created",
-            date: new Date().toISOString(),
-            note: "Asset created."
+      const editingId =
+        HAM.getValue(
+          "editingId"
+        );
+
+      const serialNumber =
+        HAM.getValue(
+          "serialNumber"
+        ).trim();
+
+      const selectedType =
+        HAM.getValue(
+          "assetType"
+        );
+
+      const status =
+        HAM.getValue(
+          "status"
+        );
+
+      const assignedTo =
+        HAM.getValue(
+          "assignedTo"
+        ).trim();
+
+      const employeeEmail =
+        HAM.getValue(
+          "employeeEmail"
+        ).trim();
+
+      const duplicate =
+        HAM.assets.find(asset => {
+          return (
+            String(
+              asset.serialNumber || ""
+            ).toLowerCase() ===
+              serialNumber.toLowerCase() &&
+            asset.id !== editingId
+          );
+        });
+
+      if (duplicate) {
+        alert(
+          "This serial number / unique ID already exists."
+        );
+
+        return;
+      }
+
+      if (
+        status === "Assigned" &&
+        (
+          !assignedTo ||
+          !employeeEmail
+        )
+      ) {
+        alert(
+          "Assigned assets require both Assigned To and Employee Email."
+        );
+
+        return;
+      }
+
+      const ownershipValidation =
+        HAM.validateOwnershipForm();
+
+      if (
+        !ownershipValidation.valid
+      ) {
+        alert(
+          ownershipValidation.message
+        );
+
+        return;
+      }
+
+      const ownership =
+        ownershipValidation.ownership;
+
+      const assetData = {
+        assetType:
+          selectedType,
+
+        model:
+          HAM.getValue("model"),
+
+        serialNumber,
+
+        assignedTo,
+
+        employeeEmail,
+
+        status,
+
+        location:
+          HAM.getValue("location"),
+
+        notes:
+          HAM.getValue("notes"),
+
+        ownership,
+
+        updatedAt:
+          new Date().toISOString()
+      };
+
+      if (editingId) {
+        const existingAsset =
+          HAM.assets.find(
+            asset =>
+              asset.id === editingId
+          );
+
+        const previousOwnership =
+          existingAsset
+            ? HAM.getAssetOwnership(
+                existingAsset
+              )
+            : HAM.createDefaultOwnership();
+
+        HAM.assets =
+          HAM.assets.map(asset => {
+            if (
+              asset.id !== editingId
+            ) {
+              return asset;
+            }
+
+            return HAM.ensureOwnership({
+              ...asset,
+              ...assetData
+            });
+          });
+
+        HAM.addLifecycleEvent({
+          assetId:
+            editingId,
+
+          type:
+            "Updated",
+
+          description:
+            "Asset details were updated.",
+
+          metadata: {
+            assetType:
+              assetData.assetType,
+
+            model:
+              assetData.model,
+
+            status:
+              assetData.status,
+
+            assignedTo:
+              assetData.assignedTo,
+
+            employeeEmail:
+              assetData.employeeEmail,
+
+            location:
+              assetData.location
           }
-        ]
-      });
+        });
+
+        HAM.recordOwnershipChange({
+          assetId:
+            editingId,
+
+          previousOwnership,
+
+          newOwnership:
+            ownership,
+
+          isNewAsset:
+            false
+        });
+      } else {
+        const assetId =
+          HAM.generateAssetId(
+            selectedType
+          );
+
+        const createdAt =
+          new Date().toISOString();
+
+        HAM.assets.push(
+          HAM.ensureOwnership({
+            id: assetId,
+
+            ...assetData,
+
+            createdAt
+          })
+        );
+
+        HAM.addLifecycleEvent({
+          assetId,
+
+          type:
+            "Created",
+
+          timestamp:
+            createdAt,
+
+          description:
+            "Asset record was created.",
+
+          metadata: {
+            assetType:
+              assetData.assetType,
+
+            model:
+              assetData.model,
+
+            serialNumber:
+              assetData.serialNumber,
+
+            status:
+              assetData.status
+          }
+        });
+
+        HAM.recordOwnershipChange({
+          assetId,
+
+          previousOwnership:
+            HAM.createDefaultOwnership(),
+
+          newOwnership:
+            ownership,
+
+          isNewAsset:
+            true
+        });
+
+        if (
+          assetData.status ===
+            "Assigned" &&
+          assetData.assignedTo
+        ) {
+          HAM.addLifecycleEvent({
+            assetId,
+
+            type:
+              "Assigned",
+
+            timestamp:
+              createdAt,
+
+            description:
+              `Asset assigned to ${assetData.assignedTo}.`,
+
+            metadata: {
+              employeeName:
+                assetData.assignedTo,
+
+              employeeEmail:
+                assetData.employeeEmail,
+
+              location:
+                assetData.location
+            }
+          });
+        }
+      }
+
+      HAM.saveAssets();
+      HAM.resetForm();
+      HAM.renderAssets();
     }
+  );
 
-    HAM.saveAssets();
-    HAM.resetForm();
-    HAM.renderAssets();
-  });
+  search.addEventListener(
+    "input",
+    HAM.renderAssets
+  );
 
-  search.addEventListener("input", HAM.renderAssets);
-  cancelEdit.addEventListener("click", HAM.resetForm);
+  cancelEdit.addEventListener(
+    "click",
+    HAM.resetForm
+  );
 
-  document.getElementById("exportJson").addEventListener("click", () => {
-    HAM.downloadFile("hiveway-assets.json", JSON.stringify(HAM.assets, null, 2));
-  });
+  document
+    .getElementById(
+      "exportJson"
+    )
+    .addEventListener(
+      "click",
+      () => {
+        HAM.downloadFile(
+          "hiveway-assets.json",
 
-  document.getElementById("exportCsv").addEventListener("click", HAM.exportAssetsCsv);
+          JSON.stringify(
+            HAM.assets,
+            null,
+            2
+          ),
 
-  document.getElementById("importJson").addEventListener("change", HAM.importAssetsJson);
+          "application/json"
+        );
+      }
+    );
+
+  document
+    .getElementById(
+      "exportCsv"
+    )
+    .addEventListener(
+      "click",
+      HAM.exportAssetsCsv
+    );
+
+  document
+    .getElementById(
+      "importJson"
+    )
+    .addEventListener(
+      "change",
+      HAM.importAssetsJson
+    );
 };
 
 HAM.editAsset = function (id) {
-  const asset = HAM.assets.find(item => item.id === id);
-  if (!asset) return;
+  const asset =
+    HAM.assets.find(
+      item =>
+        item.id === id
+    );
 
-  HAM.setValue("editingId", asset.id);
-  HAM.setValue("assetType", asset.assetType);
-  HAM.updateModelOptions(asset.model);
+  if (!asset) {
+    return;
+  }
 
-  HAM.setValue("serialNumber", asset.serialNumber);
-  HAM.setValue("assignedTo", asset.assignedTo);
-  HAM.setValue("employeeEmail", asset.employeeEmail);
-  HAM.setValue("status", asset.status);
-  HAM.setValue("location", asset.location);
-  HAM.setValue("notes", asset.notes);
+  const normalizedAsset =
+    HAM.ensureOwnership(asset);
 
-  document.getElementById("formTitle").textContent = "Edit Asset";
-  document.getElementById("submitBtn").textContent = "Save Changes";
-  document.getElementById("cancelEdit").classList.remove("hidden");
+  HAM.setValue(
+    "editingId",
+    normalizedAsset.id
+  );
 
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  HAM.setValue(
+    "assetType",
+    normalizedAsset.assetType
+  );
+
+  HAM.updateModelOptions(
+    normalizedAsset.model
+  );
+
+  HAM.setValue(
+    "serialNumber",
+    normalizedAsset.serialNumber
+  );
+
+  HAM.setValue(
+    "assignedTo",
+    normalizedAsset.assignedTo
+  );
+
+  HAM.setValue(
+    "employeeEmail",
+    normalizedAsset.employeeEmail
+  );
+
+  HAM.setValue(
+    "status",
+    normalizedAsset.status
+  );
+
+  HAM.setValue(
+    "location",
+    normalizedAsset.location
+  );
+
+  HAM.setValue(
+    "notes",
+    normalizedAsset.notes
+  );
+
+  HAM.populateOwnershipForm(
+    normalizedAsset
+  );
+
+  document.getElementById(
+    "formTitle"
+  ).textContent =
+    "Edit Asset";
+
+  document.getElementById(
+    "submitBtn"
+  ).textContent =
+    "Save Changes";
+
+  document
+    .getElementById(
+      "cancelEdit"
+    )
+    .classList.remove(
+      "hidden"
+    );
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 };
 
 HAM.resetForm = function () {
-  document.getElementById("assetForm").reset();
-  HAM.setValue("editingId", "");
-  document.getElementById("formTitle").textContent = "Add Asset";
-  document.getElementById("submitBtn").textContent = "Add Asset";
-  document.getElementById("cancelEdit").classList.add("hidden");
+  document
+    .getElementById(
+      "assetForm"
+    )
+    .reset();
+
+  HAM.setValue(
+    "editingId",
+    ""
+  );
+
+  document.getElementById(
+    "formTitle"
+  ).textContent =
+    "Add Asset";
+
+  document.getElementById(
+    "submitBtn"
+  ).textContent =
+    "Add Asset";
+
+  document
+    .getElementById(
+      "cancelEdit"
+    )
+    .classList.add(
+      "hidden"
+    );
+
   HAM.updateModelOptions();
+  HAM.resetOwnershipForm();
 };
 
 HAM.deleteAsset = function (id) {
-  if (!confirm("Delete this asset?")) return;
+  const asset =
+    HAM.assets.find(
+      item =>
+        item.id === id
+    );
 
-  HAM.assets = HAM.assets.filter(asset => asset.id !== id);
+  if (!asset) {
+    return;
+  }
+
+  if (
+    !confirm(
+      "Delete this asset?"
+    )
+  ) {
+    return;
+  }
+
+  HAM.addLifecycleEvent({
+    assetId:
+      id,
+
+    type:
+      "Deleted",
+
+    description:
+      "Asset record was deleted.",
+
+    metadata: {
+      assetType:
+        asset.assetType || "",
+
+      model:
+        asset.model || "",
+
+      serialNumber:
+        asset.serialNumber || "",
+
+      acquisitionType:
+        asset.ownership?.acquisitionType ||
+        HAM.OWNERSHIP_TYPES.UNKNOWN
+    }
+  });
+
+  HAM.assets =
+    HAM.assets.filter(
+      item =>
+        item.id !== id
+    );
+
   HAM.saveAssets();
   HAM.renderAssets();
 };
 
 HAM.returnAsset = function (id) {
-  const asset = HAM.assets.find(item => item.id === id);
-  if (!asset) return;
+  const asset =
+    HAM.assets.find(
+      item =>
+        item.id === id
+    );
 
-  const note = prompt("Return notes:", "Returned to inventory.");
+  if (!asset) {
+    return;
+  }
 
-  HAM.assets = HAM.assets.map(item => {
-    if (item.id !== id) return item;
+  const note =
+    prompt(
+      "Return notes:",
+      "Returned to inventory."
+    );
 
-    const historyItem = {
-      type: "Returned",
-      date: new Date().toISOString(),
-      fromName: item.assignedTo || "Unassigned",
-      fromEmail: item.employeeEmail || "",
-      toName: "Inventory",
-      toEmail: "",
-      note: note || "Returned to inventory."
-    };
+  HAM.assets =
+    HAM.assets.map(item => {
+      if (
+        item.id !== id
+      ) {
+        return item;
+      }
 
-    return {
-      ...item,
-      assignedTo: "",
-      employeeEmail: "",
-      status: "Available",
-      updatedAt: new Date().toISOString(),
-      history: [...(item.history || []), historyItem]
-    };
+      return HAM.ensureOwnership({
+        ...item,
+
+        assignedTo:
+          "",
+
+        employeeEmail:
+          "",
+
+        status:
+          "Available",
+
+        updatedAt:
+          new Date().toISOString()
+      });
+    });
+
+  HAM.addLifecycleEvent({
+    assetId:
+      id,
+
+    type:
+      "Returned",
+
+    description:
+      note ||
+      "Returned to inventory.",
+
+    metadata: {
+      fromName:
+        asset.assignedTo ||
+        "Unassigned",
+
+      fromEmail:
+        asset.employeeEmail ||
+        "",
+
+      toName:
+        "Inventory",
+
+      toEmail:
+        "",
+
+      location:
+        asset.location ||
+        ""
+    }
   });
 
   HAM.saveAssets();
   HAM.renderAssets();
-  alert("Asset returned successfully.");
+
+  alert(
+    "Asset returned successfully."
+  );
 };
 
 HAM.viewAssetHistory = function (id) {
-  const asset = HAM.assets.find(item => item.id === id);
-  if (!asset) return;
+  const asset =
+    HAM.assets.find(
+      item =>
+        item.id === id
+    );
 
-  const history = asset.history || [];
+  const events =
+    HAM.getAssetLifecycle(id);
 
-  const historyHtml = history.length
-    ? history.map(item => `
-        <div class="transfer-history">
-          <strong>${item.type || "Transfer"}</strong><br>
-          Date: ${item.date ? new Date(item.date).toLocaleString() : ""}<br>
-          ${item.fromName ? `From: ${item.fromName} ${item.fromEmail ? `(${item.fromEmail})` : ""}<br>` : ""}
-          ${item.toName ? `To: ${item.toName} ${item.toEmail ? `(${item.toEmail})` : ""}<br>` : ""}
-          ${item.note ? `Note: ${item.note}` : ""}
-        </div>
-      `).join("")
-    : "<p>No history yet.</p>";
+  if (
+    !asset &&
+    events.length === 0
+  ) {
+    return;
+  }
+
+  const normalizedAsset =
+    asset
+      ? HAM.ensureOwnership(asset)
+      : null;
+
+  const ownership =
+    normalizedAsset?.ownership;
+
+  const ownershipHtml =
+    ownership
+      ? `
+        <section>
+          <h2>Ownership</h2>
+
+          <p>
+            <strong>Acquisition Type:</strong>
+            ${ownership.acquisitionType}
+            <br>
+
+            <strong>Vendor:</strong>
+            ${ownership.vendor || "Not recorded"}
+            <br>
+
+            <strong>Acquisition Date:</strong>
+            ${ownership.acquisitionDate || "Not recorded"}
+            <br>
+
+            <strong>Cost:</strong>
+            ${
+              HAM.formatMoney(
+                ownership.cost,
+                ownership.currency
+              ) ||
+              "Not recorded"
+            }
+            <br>
+
+            <strong>Reference:</strong>
+            ${ownership.reference || "Not recorded"}
+          </p>
+
+          ${
+            ownership.acquisitionType ===
+            HAM.OWNERSHIP_TYPES.LEASED
+              ? `
+                <h3>Lease Details</h3>
+
+                <p>
+                  <strong>Provider:</strong>
+                  ${ownership.lease.provider || "Not recorded"}
+                  <br>
+
+                  <strong>Reference:</strong>
+                  ${ownership.lease.reference || "Not recorded"}
+                  <br>
+
+                  <strong>Start:</strong>
+                  ${ownership.lease.startDate || "Not recorded"}
+                  <br>
+
+                  <strong>End:</strong>
+                  ${ownership.lease.endDate || "Not recorded"}
+                  <br>
+
+                  <strong>Status:</strong>
+                  ${ownership.lease.status || "Not recorded"}
+                  <br>
+
+                  <strong>Monthly Cost:</strong>
+                  ${
+                    HAM.formatMoney(
+                      ownership.lease.monthlyCost,
+                      ownership.currency
+                    ) ||
+                    "Not recorded"
+                  }
+                </p>
+              `
+              : ""
+          }
+        </section>
+      `
+      : "";
+
+  const eventHtml =
+    events.length > 0
+      ? events
+          .map(event => {
+            return `
+              <div class="transfer-history">
+                <strong>
+                  ${event.type}
+                </strong>
+                <br>
+
+                Date:
+                ${
+                  event.timestamp
+                    ? new Date(
+                        event.timestamp
+                      ).toLocaleString()
+                    : ""
+                }
+                <br>
+
+                ${
+                  event.description
+                    ? `
+                      Description:
+                      ${event.description}
+                      <br>
+                    `
+                    : ""
+                }
+
+                ${
+                  event.performedBy
+                    ? `
+                      Performed By:
+                      ${event.performedBy}
+                      <br>
+                    `
+                    : ""
+                }
+              </div>
+            `;
+          })
+          .join("")
+      : "<p>No lifecycle events yet.</p>";
 
   HAM.openPopup(
-    `${asset.id} History`,
+    `${id} Lifecycle`,
+
     `
-      <h1>${asset.id}</h1>
+      <h1>${id}</h1>
 
-      <section>
-        <h2>${asset.assetType}</h2>
-        <p>
-          <strong>Model:</strong> ${asset.model || ""}<br>
-          <strong>Serial:</strong> ${asset.serialNumber}<br>
-          <strong>Status:</strong> ${asset.status}<br>
-          <strong>Assigned To:</strong> ${asset.assignedTo || "Unassigned"}<br>
-          <strong>Location:</strong> ${asset.location || ""}
-        </p>
-      </section>
+      ${
+        normalizedAsset
+          ? `
+            <section>
+              <h2>
+                ${normalizedAsset.assetType}
+              </h2>
 
-      <h2>History</h2>
-      ${historyHtml}
+              <p>
+                <strong>Model:</strong>
+                ${normalizedAsset.model || ""}
+                <br>
+
+                <strong>Serial:</strong>
+                ${normalizedAsset.serialNumber || ""}
+                <br>
+
+                <strong>Status:</strong>
+                ${normalizedAsset.status || ""}
+                <br>
+
+                <strong>Assigned To:</strong>
+                ${
+                  normalizedAsset.assignedTo ||
+                  "Unassigned"
+                }
+                <br>
+
+                <strong>Location:</strong>
+                ${normalizedAsset.location || ""}
+              </p>
+            </section>
+
+            ${ownershipHtml}
+          `
+          : `
+            <section>
+              <p>
+                This asset record was deleted.
+                Its lifecycle events remain available.
+              </p>
+            </section>
+          `
+      }
+
+      <h2>
+        Lifecycle Events
+      </h2>
+
+      ${eventHtml}
     `
   );
 };
@@ -292,50 +1090,167 @@ HAM.exportAssetsCsv = function () {
     "notes",
     "createdAt",
     "updatedAt",
-    "history"
+    "acquisitionType",
+    "ownershipVendor",
+    "acquisitionDate",
+    "ownershipCost",
+    "ownershipCurrency",
+    "ownershipReference",
+    "ownershipNotes",
+    "leaseProvider",
+    "leaseReference",
+    "leaseStartDate",
+    "leaseEndDate",
+    "leaseReturnDate",
+    "leaseMonthlyCost",
+    "leaseResidualValue",
+    "leaseStatus"
   ];
 
-  const rows = HAM.assets.map(asset =>
-    headers.map(header => {
-      const value =
-        header === "history"
-          ? JSON.stringify(asset.history || [])
-          : asset[header] || "";
+  const rows =
+    HAM.assets.map(asset => {
+      const normalizedAsset =
+        HAM.ensureOwnership(asset);
 
-      return `"${String(value).replaceAll('"', '""')}"`;
-    }).join(",")
+      const ownership =
+        normalizedAsset.ownership;
+
+      const values = {
+        ...normalizedAsset,
+
+        acquisitionType:
+          ownership.acquisitionType,
+
+        ownershipVendor:
+          ownership.vendor,
+
+        acquisitionDate:
+          ownership.acquisitionDate,
+
+        ownershipCost:
+          ownership.cost,
+
+        ownershipCurrency:
+          ownership.currency,
+
+        ownershipReference:
+          ownership.reference,
+
+        ownershipNotes:
+          ownership.notes,
+
+        leaseProvider:
+          ownership.lease.provider,
+
+        leaseReference:
+          ownership.lease.reference,
+
+        leaseStartDate:
+          ownership.lease.startDate,
+
+        leaseEndDate:
+          ownership.lease.endDate,
+
+        leaseReturnDate:
+          ownership.lease.returnDate,
+
+        leaseMonthlyCost:
+          ownership.lease.monthlyCost,
+
+        leaseResidualValue:
+          ownership.lease.residualValue,
+
+        leaseStatus:
+          ownership.lease.status
+      };
+
+      return headers
+        .map(header => {
+          const value =
+            values[header] ??
+            "";
+
+          return `"${String(value)
+            .replaceAll(
+              '"',
+              '""'
+            )}"`;
+        })
+        .join(",");
+    });
+
+  HAM.downloadFile(
+    "hiveway-assets.csv",
+
+    [
+      headers.join(","),
+      ...rows
+    ].join("\n"),
+
+    "text/csv"
   );
-
-  HAM.downloadFile("hiveway-assets.csv", [headers.join(","), ...rows].join("\n"));
 };
 
 HAM.importAssetsJson = function (event) {
-  const file = event.target.files[0];
-  if (!file) return;
+  const file =
+    event.target.files[0];
 
-  const reader = new FileReader();
+  if (!file) {
+    return;
+  }
+
+  const reader =
+    new FileReader();
 
   reader.onload = () => {
     try {
-      const imported = JSON.parse(reader.result);
+      const imported =
+        JSON.parse(
+          reader.result
+        );
 
-      if (!Array.isArray(imported)) {
-        alert("Invalid JSON file. Expected an array of assets.");
+      if (
+        !Array.isArray(
+          imported
+        )
+      ) {
+        alert(
+          "Invalid JSON file. Expected an array of assets."
+        );
+
         return;
       }
 
-      HAM.assets = imported.map(asset => ({
-        ...asset,
-        history: asset.history || []
-      }));
+      HAM.assets =
+        imported.map(asset =>
+          HAM.ensureOwnership({
+            ...asset
+          })
+        );
 
       HAM.saveAssets();
+
+      localStorage.removeItem(
+        HAM.lifecycleMigrationKey
+      );
+
+      HAM.migrateLegacyHistory();
+      HAM.migrateOwnership();
       HAM.renderAssets();
-      alert("Assets imported successfully.");
-    } catch {
-      alert("Could not read JSON file.");
+
+      alert(
+        "Assets imported successfully."
+      );
+    } catch (error) {
+      console.error(error);
+
+      alert(
+        "Could not read JSON file."
+      );
     }
   };
 
   reader.readAsText(file);
+
+  event.target.value = "";
 };
