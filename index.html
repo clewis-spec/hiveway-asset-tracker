@@ -2,49 +2,122 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hiveway Asset Manager</title>
-  <link rel="stylesheet" href="style.css" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>HiveOps Asset Manager</title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  />
 </head>
 
 <body>
   <main class="app">
 
     <header class="topbar">
-      <img src="hiveway-_1_.gif" alt="Hiveway Logo" class="logo" />
+      <img
+        src="hiveway-_1_.gif"
+        alt="Hiveway Logo"
+        class="logo"
+      />
 
       <div>
-        <h1>Asset Manager</h1>
-        <p>Track company devices, Stripe terminals, test cards, transfers, and equipment assignments.</p>
+        <h1>HiveOps</h1>
+
+        <p>
+          Asset Manager — track company devices,
+          Stripe terminals, test cards, transfers,
+          and equipment assignments.
+        </p>
       </div>
     </header>
 
     <section class="stats">
-      <div class="stat"><span id="totalAssets">0</span><p>Total Assets</p></div>
-      <div class="stat"><span id="assignedAssets">0</span><p>Assigned</p></div>
-      <div class="stat"><span id="availableAssets">0</span><p>Available</p></div>
-      <div class="stat"><span id="issueAssets">0</span><p>Repair / Lost</p></div>
+      <div class="stat">
+        <span id="totalAssets">0</span>
+        <p>Total Assets</p>
+      </div>
+
+      <div class="stat">
+        <span id="assignedAssets">0</span>
+        <p>Assigned</p>
+      </div>
+
+      <div class="stat">
+        <span id="availableAssets">0</span>
+        <p>Available</p>
+      </div>
+
+      <div class="stat">
+        <span id="issueAssets">0</span>
+        <p>Repair / Lost</p>
+      </div>
     </section>
 
     <nav class="tabs">
-      <button class="tab active" data-tab="inventoryView">Inventory</button>
-      <button class="tab" data-tab="reportsView">Reports</button>
-      <button class="tab" data-tab="transferView">Transfer</button>
-      <button class="tab" data-tab="catalogView">Catalog</button>
+      <button
+        class="tab active"
+        data-tab="inventoryView"
+      >
+        Inventory
+      </button>
+
+      <button
+        class="tab"
+        data-tab="reportsView"
+      >
+        Reports
+      </button>
+
+      <button
+        class="tab"
+        data-tab="transferView"
+      >
+        Transfer
+      </button>
+
+      <button
+        class="tab"
+        data-tab="catalogView"
+      >
+        Catalog
+      </button>
     </nav>
 
-    <section id="inventoryView" class="tab-view active-view">
+    <section
+      id="inventoryView"
+      class="tab-view active-view"
+    >
       <section class="layout">
 
         <section class="card">
-          <h2 id="formTitle">Add Asset</h2>
+          <h2 id="formTitle">
+            Add Asset
+          </h2>
 
           <form id="assetForm">
-            <input type="hidden" id="editingId" />
+            <input
+              type="hidden"
+              id="editingId"
+            />
 
-            <label>Asset Type</label>
-            <select id="assetType" required>
-              <option value="">Select asset type</option>
+            <label for="assetType">
+              Asset Type
+            </label>
+
+            <select
+              id="assetType"
+              required
+            >
+              <option value="">
+                Select asset type
+              </option>
+
               <option>MacBook</option>
               <option>iPhone</option>
               <option>iPad</option>
@@ -59,21 +132,52 @@
               <option>Other</option>
             </select>
 
-            <label>Model</label>
-            <select id="model" required>
-              <option value="">Select asset type first</option>
+            <label for="model">
+              Model
+            </label>
+
+            <select
+              id="model"
+              required
+            >
+              <option value="">
+                Select asset type first
+              </option>
             </select>
 
-            <label>Serial Number / Unique ID</label>
-            <input id="serialNumber" placeholder="Serial number or unique identifier" required />
+            <label for="serialNumber">
+              Serial Number / Unique ID
+            </label>
 
-            <label>Assigned To</label>
-            <input id="assignedTo" placeholder="Employee name" />
+            <input
+              id="serialNumber"
+              placeholder="Serial number or unique identifier"
+              required
+            />
 
-            <label>Employee Email</label>
-            <input id="employeeEmail" placeholder="employee@company.com" />
+            <label for="assignedTo">
+              Assigned To
+            </label>
 
-            <label>Status</label>
+            <input
+              id="assignedTo"
+              placeholder="Employee name"
+            />
+
+            <label for="employeeEmail">
+              Employee Email
+            </label>
+
+            <input
+              id="employeeEmail"
+              type="email"
+              placeholder="employee@company.com"
+            />
+
+            <label for="status">
+              Status
+            </label>
+
             <select id="status">
               <option>Available</option>
               <option>Assigned</option>
@@ -82,14 +186,38 @@
               <option>Lost</option>
             </select>
 
-            <label>Location</label>
-            <input id="location" placeholder="Office, city, team, or department" />
+            <label for="location">
+              Location
+            </label>
 
-            <label>Notes</label>
-            <textarea id="notes" placeholder="Notes, kit contents, condition, etc."></textarea>
+            <input
+              id="location"
+              placeholder="Office, city, team, or department"
+            />
 
-            <button type="submit" id="submitBtn">Add Asset</button>
-            <button type="button" id="cancelEdit" class="secondary hidden">Cancel Edit</button>
+            <label for="notes">
+              Notes
+            </label>
+
+            <textarea
+              id="notes"
+              placeholder="Notes, kit contents, condition, etc."
+            ></textarea>
+
+            <button
+              type="submit"
+              id="submitBtn"
+            >
+              Add Asset
+            </button>
+
+            <button
+              type="button"
+              id="cancelEdit"
+              class="secondary hidden"
+            >
+              Cancel Edit
+            </button>
           </form>
         </section>
 
@@ -97,21 +225,40 @@
           <div class="section-head">
             <div>
               <h2>Inventory</h2>
-              <p>Search, import, export, edit, and manage assets.</p>
+
+              <p>
+                Search, import, export, edit,
+                and manage assets.
+              </p>
             </div>
 
             <div class="actions">
-              <button id="exportJson">Export JSON</button>
-              <button id="exportCsv">Export CSV</button>
+              <button id="exportJson">
+                Export JSON
+              </button>
+
+              <button id="exportCsv">
+                Export CSV
+              </button>
 
               <label class="import-btn">
                 Import JSON
-                <input type="file" id="importJson" accept=".json" hidden />
+
+                <input
+                  type="file"
+                  id="importJson"
+                  accept=".json"
+                  hidden
+                />
               </label>
             </div>
           </div>
 
-          <input id="search" class="search" placeholder="Search by asset, serial, employee, model, or status..." />
+          <input
+            id="search"
+            class="search"
+            placeholder="Search by asset, serial, employee, model, or status..."
+          />
 
           <div class="table-wrap">
             <table>
@@ -126,24 +273,38 @@
                   <th>Actions</th>
                 </tr>
               </thead>
+
               <tbody id="assetTable"></tbody>
             </table>
           </div>
 
-          <p id="emptyState" class="empty">No assets yet. Add your first asset.</p>
+          <p
+            id="emptyState"
+            class="empty"
+          >
+            No assets yet. Add your first asset.
+          </p>
         </section>
 
       </section>
     </section>
 
-    <section id="reportsView" class="tab-view">
+    <section
+      id="reportsView"
+      class="tab-view"
+    >
       <section class="card">
         <h2>Reports</h2>
-        <p>Click an employee name to view assigned assets and transfer history.</p>
+
+        <p>
+          Click an employee name to view assigned
+          assets and lifecycle information.
+        </p>
 
         <div class="report-grid">
           <div>
             <h3>Assets by Employee</h3>
+
             <table>
               <thead>
                 <tr>
@@ -152,12 +313,14 @@
                   <th>Total Assets</th>
                 </tr>
               </thead>
+
               <tbody id="employeeReport"></tbody>
             </table>
           </div>
 
           <div>
             <h3>Assets by Status</h3>
+
             <table>
               <thead>
                 <tr>
@@ -165,12 +328,14 @@
                   <th>Total</th>
                 </tr>
               </thead>
+
               <tbody id="statusReport"></tbody>
             </table>
           </div>
 
           <div>
             <h3>Assets by Type</h3>
+
             <table>
               <thead>
                 <tr>
@@ -178,6 +343,7 @@
                   <th>Total</th>
                 </tr>
               </thead>
+
               <tbody id="typeReport"></tbody>
             </table>
           </div>
@@ -185,43 +351,96 @@
       </section>
     </section>
 
-    <section id="transferView" class="tab-view">
+    <section
+      id="transferView"
+      class="tab-view"
+    >
       <section class="card transfer-card">
         <h2>Transfer Asset</h2>
-        <p>Move equipment from one employee to another and keep a transfer record.</p>
+
+        <p>
+          Move equipment from one employee to another
+          and create a lifecycle record.
+        </p>
 
         <form id="transferForm">
-          <label>Asset</label>
-          <select id="transferAsset" required>
-            <option value="">Select asset</option>
+          <label for="transferAsset">
+            Asset
+          </label>
+
+          <select
+            id="transferAsset"
+            required
+          >
+            <option value="">
+              Select asset
+            </option>
           </select>
 
-          <label>New Assigned To</label>
-          <input id="transferTo" placeholder="Employee name" required />
+          <label for="transferTo">
+            New Assigned To
+          </label>
 
-          <label>New Employee Email</label>
-          <input id="transferEmail" placeholder="employee@company.com" />
+          <input
+            id="transferTo"
+            placeholder="Employee name"
+            required
+          />
 
-          <label>New Location</label>
-          <input id="transferLocation" placeholder="Office, city, team, or department" />
+          <label for="transferEmail">
+            New Employee Email
+          </label>
 
-          <label>Transfer Notes</label>
-          <textarea id="transferNotes" placeholder="Example: Redeployed from Dev to Sales"></textarea>
+          <input
+            id="transferEmail"
+            type="email"
+            placeholder="employee@company.com"
+          />
 
-          <button type="submit">Transfer Asset</button>
+          <label for="transferLocation">
+            New Location
+          </label>
+
+          <input
+            id="transferLocation"
+            placeholder="Office, city, team, or department"
+          />
+
+          <label for="transferNotes">
+            Transfer Notes
+          </label>
+
+          <textarea
+            id="transferNotes"
+            placeholder="Example: Redeployed from Dev to Sales"
+          ></textarea>
+
+          <button type="submit">
+            Transfer Asset
+          </button>
         </form>
       </section>
     </section>
 
-    <section id="catalogView" class="tab-view">
+    <section
+      id="catalogView"
+      class="tab-view"
+    >
       <section class="catalog-layout">
 
         <section class="card catalog-card">
           <h2>Catalog Manager</h2>
-          <p>Add or remove model options without editing code.</p>
+
+          <p>
+            Add or remove model options without
+            editing code.
+          </p>
 
           <form id="catalogForm">
-            <label>Asset Type</label>
+            <label for="catalogAssetType">
+              Asset Type
+            </label>
+
             <select id="catalogAssetType">
               <option>MacBook</option>
               <option>iPhone</option>
@@ -237,21 +456,42 @@
               <option>Other</option>
             </select>
 
-            <label>New Model</label>
-            <input id="newCatalogModel" placeholder="Example: MacBook Pro (14-inch, M5)" />
+            <label for="newCatalogModel">
+              New Model
+            </label>
 
-            <button type="submit">Add Model</button>
+            <input
+              id="newCatalogModel"
+              placeholder="Example: MacBook Pro (14-inch, M5)"
+            />
+
+            <button type="submit">
+              Add Model
+            </button>
           </form>
 
           <div class="catalog-actions">
-            <button id="exportCatalog">Export Catalog</button>
+            <button id="exportCatalog">
+              Export Catalog
+            </button>
 
             <label class="import-btn">
               Import Catalog
-              <input type="file" id="importCatalog" accept=".json" hidden />
+
+              <input
+                type="file"
+                id="importCatalog"
+                accept=".json"
+                hidden
+              />
             </label>
 
-            <button id="resetCatalog" class="secondary">Reset Default Catalog</button>
+            <button
+              id="resetCatalog"
+              class="secondary"
+            >
+              Reset Default Catalog
+            </button>
           </div>
         </section>
 
@@ -259,11 +499,17 @@
           <div class="section-head">
             <div>
               <h2>Models</h2>
-              <p id="catalogModelCount">Select an asset type to view models.</p>
+
+              <p id="catalogModelCount">
+                Select an asset type to view models.
+              </p>
             </div>
           </div>
 
-          <div id="catalogModelList" class="catalog-model-list"></div>
+          <div
+            id="catalogModelList"
+            class="catalog-model-list"
+          ></div>
         </section>
 
       </section>
@@ -274,6 +520,7 @@
   <script src="js/config.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/ui.js"></script>
+  <script src="js/lifecycle.js"></script>
   <script src="js/catalog.js"></script>
   <script src="js/reports.js"></script>
   <script src="js/transfer.js"></script>
