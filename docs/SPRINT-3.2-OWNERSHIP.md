@@ -78,3 +78,53 @@ ownership: {
     status: ""
   }
 }
+General Ownership Fields
+
+These fields apply to all asset types:
+
+Acquisition Type
+Vendor
+Acquisition Date
+Purchase Price or Asset Cost
+Currency
+Purchase Order, Invoice, or Reference
+Ownership Notes
+Lease Fields
+
+These fields are displayed when Acquisition Type is Leased:
+
+Lease Provider
+Lease Reference
+Lease Start Date
+Lease End Date
+Lease Return Date
+Monthly Cost
+Residual Value
+Lease Status
+Approved Lease Statuses
+Active
+Expiring Soon
+Extended
+Pending Return
+Returned
+Buyout Completed
+Lifecycle Events
+
+The ownership engine will create lifecycle events when applicable.
+
+Supported ownership lifecycle events:
+
+Ownership Added
+Ownership Updated
+Purchase Recorded
+Lease Started
+Lease Extended
+Lease Pending Return
+Lease Returned
+Lease Buyout Completed
+Rental Started
+Loan Started
+Demo Assigned
+Vendor Evaluation Started
+
+Each lifecycle event will reference the related asset ID.
