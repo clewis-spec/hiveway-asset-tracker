@@ -1,5 +1,49 @@
 window.HAM = window.HAM || {};
 
+HAM.APP_VERSION = "3.2.0";
+HAM.OWNERSHIP_SCHEMA_VERSION = 1;
+
+HAM.OWNERSHIP_TYPES = {
+  UNKNOWN: "Unknown",
+  PURCHASED: "Purchased",
+  LEASED: "Leased",
+  RENTAL: "Rental",
+  DEMO: "Demo",
+  LOANED: "Loaned",
+  VENDOR_EVALUATION: "Vendor Evaluation",
+  INTERNAL_DEVELOPMENT: "Internal Development",
+  CUSTOMER_DEMO: "Customer Demo"
+};
+
+HAM.LEASE_STATUSES = {
+  ACTIVE: "Active",
+  EXPIRING_SOON: "Expiring Soon",
+  EXTENDED: "Extended",
+  PENDING_RETURN: "Pending Return",
+  RETURNED: "Returned",
+  BUYOUT_COMPLETED: "Buyout Completed"
+};
+
+HAM.CURRENCIES = [
+  "CAD",
+  "USD"
+];
+
+HAM.OWNERSHIP_EVENT_TYPES = {
+  OWNERSHIP_ADDED: "Ownership Added",
+  OWNERSHIP_UPDATED: "Ownership Updated",
+  PURCHASE_RECORDED: "Purchase Recorded",
+  LEASE_STARTED: "Lease Started",
+  LEASE_EXTENDED: "Lease Extended",
+  LEASE_PENDING_RETURN: "Lease Pending Return",
+  LEASE_RETURNED: "Lease Returned",
+  LEASE_BUYOUT_COMPLETED: "Lease Buyout Completed",
+  RENTAL_STARTED: "Rental Started",
+  LOAN_STARTED: "Loan Started",
+  DEMO_ASSIGNED: "Demo Assigned",
+  VENDOR_EVALUATION_STARTED: "Vendor Evaluation Started"
+};
+
 HAM.defaultAssetCatalog = {
   "MacBook": [
     "MacBook Air 13-inch, M1 (2020)",
@@ -21,6 +65,7 @@ HAM.defaultAssetCatalog = {
     "MacBook Pro 14-inch, M5 Pro (2025)",
     "Other MacBook"
   ],
+
   "iPhone": [
     "iPhone 12",
     "iPhone 12 mini",
@@ -45,6 +90,7 @@ HAM.defaultAssetCatalog = {
     "iPhone SE 3rd Generation (2022)",
     "Other iPhone"
   ],
+
   "iPad": [
     "iPad 10th Generation",
     "iPad 11th Generation",
@@ -62,6 +108,7 @@ HAM.defaultAssetCatalog = {
     "iPad Pro 13-inch, M4",
     "Other iPad"
   ],
+
   "Android Phone": [
     "Google Pixel 6",
     "Google Pixel 6 Pro",
@@ -90,14 +137,38 @@ HAM.defaultAssetCatalog = {
     "Samsung Galaxy S25 Ultra",
     "Other Android"
   ],
-  "BBPOS WisePad 3": ["BBPOS WisePad 3"],
-  "BBPOS WisePOS E": ["BBPOS WisePOS E"],
-  "BBPOS WisePOS E Dock": ["BBPOS WisePOS E Dock"],
-  "Stripe Reader M2": ["Stripe Reader M2"],
-  "Stripe Reader S700": ["Stripe Reader S700"],
-  "Stripe Terminal Test Card": ["Stripe Terminal Test Card"],
-  "Interac Test Card": ["Interac Test Card"],
-  "Other": ["Other"]
+
+  "BBPOS WisePad 3": [
+    "BBPOS WisePad 3"
+  ],
+
+  "BBPOS WisePOS E": [
+    "BBPOS WisePOS E"
+  ],
+
+  "BBPOS WisePOS E Dock": [
+    "BBPOS WisePOS E Dock"
+  ],
+
+  "Stripe Reader M2": [
+    "Stripe Reader M2"
+  ],
+
+  "Stripe Reader S700": [
+    "Stripe Reader S700"
+  ],
+
+  "Stripe Terminal Test Card": [
+    "Stripe Terminal Test Card"
+  ],
+
+  "Interac Test Card": [
+    "Interac Test Card"
+  ],
+
+  "Other": [
+    "Other"
+  ]
 };
 
 HAM.assetPrefixes = {
